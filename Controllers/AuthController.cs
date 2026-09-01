@@ -32,8 +32,11 @@ public class AuthController : ControllerBase
     [HttpPost("createNewAcc")]
     public IActionResult createNewAcc(CreateAccountDTO user)
     {
-        Console.WriteLine("New acc called\nEmail: "+user.Email+"\nName: "+user.Name+"\nDOB: "+user.dateOfBirth+
-        "\nPassword: "+user.password+"\nPhone: "+user.Phone+"\nRole: "+user.role);
+        //Can only create Cusomer or Developer here.
+        if(user.role != "Customer" && user.role != "Developer")
+        {
+            return BadRequest(new { message = "Invalid role!" });
+        }
         try
         {
             string email = user.Email;

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\My Data\\Projects\\Game Cafe - Enhanced\\Gaming-Cafe_Backend\\Gaming-Cafe_Backend.csproj": {}
+    "C:\\My Data\\Projects\\Game Cafe - Enhanced\\Gaming-Cafe_Backend_Dev\\Gaming-Cafe_Backend.csproj": {}
   },
   "projects": {
-    "C:\\My Data\\Projects\\Game Cafe - Enhanced\\Gaming-Cafe_Backend\\Gaming-Cafe_Backend.csproj": {
+    "C:\\My Data\\Projects\\Game Cafe - Enhanced\\Gaming-Cafe_Backend_Dev\\Gaming-Cafe_Backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\My Data\\Projects\\Game Cafe - Enhanced\\Gaming-Cafe_Backend\\Gaming-Cafe_Backend.csproj",
+        "projectUniqueName": "C:\\My Data\\Projects\\Game Cafe - Enhanced\\Gaming-Cafe_Backend_Dev\\Gaming-Cafe_Backend.csproj",
         "projectName": "Gaming-Cafe_Backend",
-        "projectPath": "C:\\My Data\\Projects\\Game Cafe - Enhanced\\Gaming-Cafe_Backend\\Gaming-Cafe_Backend.csproj",
+        "projectPath": "C:\\My Data\\Projects\\Game Cafe - Enhanced\\Gaming-Cafe_Backend_Dev\\Gaming-Cafe_Backend.csproj",
         "packagesPath": "C:\\Users\\Gillani\\.nuget\\packages\\",
-        "outputPath": "C:\\My Data\\Projects\\Game Cafe - Enhanced\\Gaming-Cafe_Backend\\obj\\",
+        "outputPath": "C:\\My Data\\Projects\\Game Cafe - Enhanced\\Gaming-Cafe_Backend_Dev\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Gillani\\AppData\\Roaming\\NuGet\\NuGet.Config"

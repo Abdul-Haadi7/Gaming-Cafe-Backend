@@ -148,7 +148,7 @@ public class AuthHelper
     }
     public int getId(string email)
     {
-             string sqlToGetId = @"SELECT id from Users WHERE email = @email";
+        string sqlToGetId = @"SELECT id from Users WHERE email = @email";
     
         List<SqlParameter> paramForId = new List<SqlParameter>
         {
