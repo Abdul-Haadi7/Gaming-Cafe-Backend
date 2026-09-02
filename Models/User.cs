@@ -6,7 +6,6 @@ public class User
     public string Name{get;set;}
     public string Email{get;set;}
     public string Phone{get;set;}
-    public DateTime dateOfBirth {get;set;}
     public Boolean isActive{get;set;}
     public User()
     {

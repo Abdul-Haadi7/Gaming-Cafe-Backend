@@ -84,31 +84,17 @@ public class DataContextDapper
 
         return result;
     }
-    // public T? returnSingle_WithParameters<T>(string sql,List<SqlParameter> par)
-    // {
-    //     using (SqlConnection con = new SqlConnection(
-    //         this._config.GetConnectionString("Gaming_Cafe_DB")))
-    //     {
-    //         con.Open();
+    public int ExecuteScalar_WithParameters(string sql, List<SqlParameter> parameters)
+{
+    using SqlConnection connection = new SqlConnection(this._config.GetConnectionString("Gaming_Cafe_DB"));
 
-    //         using (SqlCommand cmd = new SqlCommand(sql, con))
-    //         {
-    //             foreach (SqlParameter p in par)
-    //             {
-    //                 cmd.Parameters.Add(p);
-    //             }
+    connection.Open();
 
-    //             object? result = cmd.ExecuteScalar();
-
-    //             if (result == null || result == DBNull.Value)
-    //             {
-    //                 return default;
-    //             }
-
-    //             return (T)result;
-    //         }
-    //     }
-    // }
+    return connection.ExecuteScalar<int>(
+        sql,
+        parameters.ToDictionary(p => p.ParameterName, p => p.Value)
+    );
+}
     public T? returnSingle_WithParameters<T>(
     string sql,
     List<SqlParameter> par)

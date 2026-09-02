@@ -49,13 +49,12 @@ public class SuperAdminController : ControllerBase
 
             byte[] passwordHash = this.helper.getPasswordHash(admin.password, passwordSalt);
 
-            string sqlToAddAdmin = @"INSERT INTO Users (name, email, phone, dateOfBirth) VALUES (@name,@email,@phone,@DOB)";
+            string sqlToAddAdmin = @"INSERT INTO Users (name, email, phone) VALUES (@name,@email,@phone)";
             List<SqlParameter> userPar = new List<SqlParameter>
             {
                 new SqlParameter("@name", admin.Name),
                 new SqlParameter("@email", admin.Email),
                 new SqlParameter("@phone", admin.Phone),
-                new SqlParameter("@DOB", admin.dateOfBirth),
             };
             //Insert admin in Users table
             if (this._dapper.ExecuteSQL_WithParameters(sqlToAddAdmin, userPar))

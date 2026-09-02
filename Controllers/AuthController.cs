@@ -54,13 +54,12 @@ public class AuthController : ControllerBase
 
             byte[] passwordHash = this.helper.getPasswordHash(user.password, passwordSalt);
 
-            string sqlToAdduser = @"INSERT INTO Users (name, email, phone, dateOfBirth) VALUES (@name,@email,@phone,@DOB)";
+            string sqlToAdduser = @"INSERT INTO Users (name, email, phone) VALUES (@name,@email,@phone)";
             List<SqlParameter> userPar = new List<SqlParameter>
             {
                 new SqlParameter("@name", user.Name),
                 new SqlParameter("@email", user.Email),
                 new SqlParameter("@phone", user.Phone),
-                new SqlParameter("@DOB", user.dateOfBirth),
             };
         
             //Insert user in Users table
