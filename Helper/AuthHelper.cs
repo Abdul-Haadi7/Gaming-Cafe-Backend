@@ -109,13 +109,9 @@ public class AuthHelper
         {
             new SqlParameter("@roleId", roleId),
         };
-        Console.WriteLine(sql_getAllPer);
         //All permissions of concerned role are now in this list
         IEnumerable<int> allPermissions = this._dapper.loadData_WithParameters<int>(sql_getAllPer,param);
-        foreach(int str in allPermissions)
-        {
-            Console.WriteLine(str);
-        }
+    
         //Now insert all permissions in UserPermissions table.
         foreach(int per in allPermissions)
         {
@@ -125,7 +121,6 @@ public class AuthHelper
                 new SqlParameter("@userId", userId),
                 new SqlParameter("@permId", per)
             };
-            Console.WriteLine(sql_insertPerm);
             this._dapper.ExecuteSQL_WithParameters(sql_insertPerm,param_insertPerm);
         }
     }
@@ -142,7 +137,6 @@ public class AuthHelper
                 new SqlParameter("@userId", userId),
                 new SqlParameter("@permId", per)
             };
-            Console.WriteLine(sql_insertPerm);
             this._dapper.ExecuteSQL_WithParameters(sql_insertPerm,param_insertPerm);
         }
     }

@@ -115,3 +115,37 @@ TRUNCATE TABLE UserRoles
 TRUNCATE TABLE UserPermissions
 TRUNCATE TABLE Users
 
+-- Users can rate evey game, all ratings given to evry game are sotred here and the average rating
+--calculated and displayed in the game.
+CREATE TABLE Game_Ratings
+(
+    userId INT NOT NULL,
+    gameId INT NOT NULL,
+    ratingGiven DECIMAL(2,1) NOT NULL,
+
+    PRIMARY KEY (userId, gameId),
+    CONSTRAINT FK_GameRatings_User
+        FOREIGN KEY (userId)
+        REFERENCES Users(id),
+    CONSTRAINT FK_GameRatings_Game
+        FOREIGN KEY (gameId)
+        REFERENCES Games(id),
+
+    CONSTRAINT checkRating
+        CHECK (ratingGiven >= 0 AND ratingGiven <= 10)
+);
+
+
+CREATE TABLE Games (id INT PRIMARY KEY IDENTITY(1,1),
+name NVARCHAR(100) NOT NULL,
+price DECIMAL(10,2) NOT NULL,
+intro NVARCHAR(15) NOT NULL,
+description NVARCHAR(MAX) NOT NULL,
+genre NVARCHAR(100) NOT NULL,
+rating DECIMAL(1,1) NOT NULL,
+downloadLink NVARCHAR(100) NOT NULL,
+imageLink NVARCHAR(100) NOT NULL,
+discountPercentage DECIMAL(3,2) NOT NULL DEFAULT 0,
+develooperId INT,
+CONSTRAINT fk_developerId FOREIGN KEY (develooperId) REFERENCES Users(id) 
+ON UPDATE CASCADE ON DELETE SET NULL)

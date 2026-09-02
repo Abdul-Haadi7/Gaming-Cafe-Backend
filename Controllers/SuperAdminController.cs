@@ -18,12 +18,14 @@ public class SuperAdminController : ControllerBase
     private readonly DataContextDapper _dapper;
     private IConfiguration _config;
     private AuthHelper helper;
+    private readonly OperationsHelper opHelper;
 
     public SuperAdminController(IConfiguration con)
     {
         this._config = con;
         this._dapper = new DataContextDapper(this._config);
         this.helper = new AuthHelper(con);
+        this.opHelper = new OperationsHelper(con);
     }
 
     [Authorize (Policy = "CanAddAdmin")]
@@ -99,5 +101,17 @@ public class SuperAdminController : ControllerBase
         {
             return StatusCode(500, new { message = ex.Message });
         }
+    }
+    [HttpGet("getSuperAdminName")]
+    public string getName()
+    {
+        string? userId = this.User.FindFirst("id")?.Value;
+        if(userId == null)
+        {
+            return "";
+        }
+        int id = int.Parse(userId);
+        string name = this.opHelper.getName(id);
+        return name;
     }
 }

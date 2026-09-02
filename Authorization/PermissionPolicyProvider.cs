@@ -18,13 +18,11 @@ public class PermissionPolicyProvider : DefaultAuthorizationPolicyProvider
     public override async Task<AuthorizationPolicy?> GetPolicyAsync(
         string policyName)
     {
-        Console.WriteLine("🔥 POLICY PROVIDER CALLED: " + policyName);
         // First check if ASP.NET already knows about this policy
         var policy = await base.GetPolicyAsync(policyName);
 
         if (policy != null)
         {
-            Console.WriteLine("Policy already exists: " + policyName);
             return policy;
         }
 
