@@ -16,6 +16,7 @@ public class Game
     public int? approvedBy{get;set;}
     public int? rejectedBy{get;set;}
     public string rejectionReason{get;set;}
+    public bool hasWarning{get;set;}
     public Game()
     {
         this.id=0;
@@ -31,6 +32,7 @@ public class Game
         this.approvedBy = null;
         this.rejectedBy = null;
         this.rejectionReason = "";
+        this.hasWarning = false;
     }
 }
 

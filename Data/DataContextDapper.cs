@@ -84,6 +84,24 @@ public class DataContextDapper
 
         return result;
     }
+
+    public IEnumerable<T> loadObject_WithParameters<T>(string sql,List<SqlParameter> par)
+    {
+        using (SqlConnection con = new SqlConnection(
+            this._config.GetConnectionString("Gaming_Cafe_DB")))
+        {
+            con.Open();
+
+            DynamicParameters parameters = new DynamicParameters();
+
+            foreach (SqlParameter p in par)
+            {
+                parameters.Add(p.ParameterName, p.Value);
+            }
+
+            return con.Query<T>(sql, parameters);
+        }
+    }
     public int ExecuteScalar_WithParameters(string sql, List<SqlParameter> parameters)
 {
     using SqlConnection connection = new SqlConnection(this._config.GetConnectionString("Gaming_Cafe_DB"));

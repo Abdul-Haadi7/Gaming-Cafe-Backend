@@ -87,4 +87,28 @@ public class DeveloperController : ControllerBase
         }
         return this.opHelper.uploadGameRequirements(requirements);
     }
+    [HttpGet("getMyGames")]
+    public IActionResult getMyGames()
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userid = int.Parse(id);
+        if (!this.opHelper.userExists(userid))
+        {
+            return BadRequest(new{message = "User not found"});
+        }
+        IEnumerable<ReturnGamesToDevDTO> list = this.opHelper.getGames(userid);
+        return Ok(list);
+    }
+    [Authorize (Policy = "DeleteOwnGame")]
+    [HttpDelete("deleteMyGame")]
+    public IActionResult deleteMyGame(int gameId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (!this.opHelper.gameBelongsToDeveloper(gameId, userId))
+        {
+            return Unauthorized (new{message = "This game does not belong to you!"});
+        }
+        return this.opHelper.deleteGame(gameId);
+    }
 }

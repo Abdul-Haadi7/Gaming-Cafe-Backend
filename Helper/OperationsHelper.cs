@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using GAME_CAFE.Data;
 using GAME_CAFE.Dtos;
 using Microsoft.AspNetCore.Mvc;
@@ -93,6 +94,10 @@ public class OperationsHelper
 
     public Boolean gameBelongsToDeveloper(int gameId, int developerId)
     {
+        if (!this.gameExists(gameId))
+        {
+            return false;
+        }
         string sql = "SELECT * FROM Games WHERE id = @gameId AND developerId = @developerId";
         List<SqlParameter> parameters = new List<SqlParameter>
         {
@@ -137,5 +142,40 @@ public class OperationsHelper
         {
             return new BadRequestObjectResult(new { message = "Failed to upload the game requirements." });
         }
+    }
+    public IEnumerable<ReturnGamesToDevDTO> getGames(int devId)
+    {
+        string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
+        discountPercentage,hasWarning,isActive FROM Games WHERE developerId = @devId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@devId", devId),
+        };
+        IEnumerable<ReturnGamesToDevDTO> list = this._dapper.loadObject_WithParameters<ReturnGamesToDevDTO>(sql,parameters);
+        return list;
+    }
+    public Boolean userExists(int userId)
+    {
+        string sql = "SELECT * FROM Users WHERE id = @userId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@userId", userId),
+        };
+        int n = this._dapper.returnSingle_WithParameters<int>(sql,parameters);
+        return n>0;
+    }
+    public IActionResult deleteGame(int gameId)
+    {
+        string sql = @"UPDATE Games SET isActive = 0 WHERE id = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id", gameId),
+        };
+        bool deleted = this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+        if (deleted)
+        {
+            return new OkObjectResult(new { message = "Game deleted!" });
+        }
+        return BadRequest (new {message = "Could not delete the game!"});
     }
 }

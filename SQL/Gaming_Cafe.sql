@@ -1,6 +1,5 @@
 USE Gaming_Cafe
-DROP DATABASE Gaming_Cafe
-CREATE DATABASE Gaming_Cafe
+
 
 CREATE TABLE Users (id INT PRIMARY KEY IDENTITY(1,1),
 name NVARCHAR(100) NOT NULL,
@@ -132,6 +131,7 @@ isActive BIT NOT NULL DEFAULT 1,
 approvedBy INT DEFAULT NULL,
 rejectedBy INT DEFAULT NULL,
 rejectionReason NVARCHAR(MAX) DEFAULT NULL,
+hasWarning BIT DEFAULT 0,
 CONSTRAINT fk_developerId FOREIGN KEY (developerId) REFERENCES Users(id) 
 ON UPDATE CASCADE ON DELETE SET NULL,
 
@@ -140,8 +140,12 @@ CONSTRAINT fk_approvedBy FOREIGN KEY (approvedBy) REFERENCES Users(id),
 CONSTRAINT fk_rejectedBy FOREIGN KEY (rejectedBy) REFERENCES Users(id)
 );
 
+
+
 SELECT * FROM Games
 DROP TABLE Games
+SELECT * FROM Games WHERE developerId = 7
+SELECT * FROM Games WHERE developerId = 3
 
 -- Users can rate evey game, all ratings given to evry game are sotred here and the average rating
 --calculated and displayed in the game.
@@ -180,3 +184,9 @@ CREATE TABLE Game_Requirements
 
 DROP TABLE Game_Requirements
 SELECT * FROM Game_Requirements
+
+CREATE TABLE Game_Stats (gameId INT PRIMARY KEY,
+copiesSold INT DEFAULT 0,
+moneyEarned DECIMAL (20,2) DEFAULT 0,
+FOREIGN KEY (gameId) REFERENCES Games(id))
+
