@@ -26,7 +26,6 @@ public class DatabaseSeeder
         string email = superAdmin["Email"];
         string password = superAdmin["Password"];
         string phone = superAdmin["Phone"];
-        DateTime dateOfBirth = DateTime.Parse(superAdmin["DateOfBirth"]);
 
         //Check if Super Admin already exists
         string checkSql = @"
@@ -63,16 +62,15 @@ public class DatabaseSeeder
         //Insert into Users
         string userSql = @"
             INSERT INTO Users
-            (name, email, phone, dateOfBirth)
+            (name, email, phone)
             VALUES
-            (@name, @email, @phone, @dateOfBirth)";
+            (@name, @email, @phone)";
 
         List<SqlParameter> userParams = new()
         {
             new SqlParameter("@name", name),
             new SqlParameter("@email", email),
             new SqlParameter("@phone", phone),
-            new SqlParameter("@dateOfBirth", dateOfBirth)
         };
         //Insert
         this._dapper.ExecuteSQL_WithParameters(userSql,userParams);

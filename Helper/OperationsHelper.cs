@@ -1,6 +1,7 @@
 using System.Reflection.Metadata.Ecma335;
 using GAME_CAFE.Data;
 using GAME_CAFE.Dtos;
+using GAME_CAFE.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
@@ -92,13 +93,14 @@ public class OperationsHelper
         throw new NotImplementedException();
     }
 
-    public Boolean gameBelongsToDeveloper(int gameId, int developerId)
+    public bool gameBelongsToDeveloper(int gameId, int developerId)
     {
         if (!this.gameExists(gameId))
         {
             return false;
         }
-        string sql = "SELECT * FROM Games WHERE id = @gameId AND developerId = @developerId";
+        string sql = @"SELECT COUNT(*) FROM Games WHERE id = @gameId 
+                   AND developerId = @developerId";
         List<SqlParameter> parameters = new List<SqlParameter>
         {
             new SqlParameter("@gameId", gameId),
@@ -177,5 +179,64 @@ public class OperationsHelper
             return new OkObjectResult(new { message = "Game deleted!" });
         }
         return BadRequest (new {message = "Could not delete the game!"});
+    }
+    public EditGameDTO? getGameById(int gameId)
+    {
+        string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
+        discountPercentage FROM Games WHERE id = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id", gameId),
+        };
+        EditGameDTO? game = this._dapper.returnSingleObj_WithParameters<EditGameDTO>(sql,parameters);
+        return game;
+    }
+    public ReturnGameReqDTO? getReqById(int gameId)
+    {
+        string sql = @"SELECT os,processor,ram,graphicsCard,storage FROM Game_Requirements 
+        WHERE gameId = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id", gameId),
+        };
+        ReturnGameReqDTO? req = this._dapper.returnSingleObj_WithParameters<ReturnGameReqDTO>(sql,parameters);
+        return req;
+    }
+    public bool editGame(EditGameDTO editedGame,int gameId)
+    {
+        string sql = @"UPDATE Games SET name = @newName, price = @newPrice, genre = @newGenre,
+        intro = @newIntro, description = @newDesc, downloadLink = @newDownLink,
+        imageLink = @newImgLink, discountPercentage = @newDis WHERE id = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@newName", editedGame.name),
+            new SqlParameter("@newPrice", editedGame.price),
+            new SqlParameter("@newGenre", editedGame.genre),
+            new SqlParameter("@newIntro", editedGame.intro),
+            new SqlParameter("@newDesc", editedGame.description),
+            new SqlParameter("@newDownLink", editedGame.downloadLink),
+            new SqlParameter("@newImgLink", editedGame.imageLink),
+            new SqlParameter("@newDis", editedGame.discountPercentage),
+            new SqlParameter("@id", gameId)
+        };
+        return this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+    }
+    public bool editRequirements(EditRequirementsDTO requirements,int gameId)
+    {
+        string sql = @"UPDATE Game_Requirements SET os = @newOS,
+        processor = @newProc,
+        ram = @newRAM,
+        graphicsCard = @newGPU,
+        storage = @newSto WHERE gameId = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@newOS", requirements.os),
+            new SqlParameter("@newProc", requirements.processor),
+            new SqlParameter("@newRAM", requirements.ram),
+            new SqlParameter("@newGPU", requirements.graphicsCard),
+            new SqlParameter("@newSto", requirements.storage),
+            new SqlParameter("@id", gameId)
+        };
+        return this._dapper.ExecuteSQL_WithParameters(sql,parameters);
     }
 }

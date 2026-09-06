@@ -1,5 +1,7 @@
 USE Gaming_Cafe
 
+DROP DATABASE Gaming_Cafe
+CREATE DATABASE Gaming_Cafe
 
 CREATE TABLE Users (id INT PRIMARY KEY IDENTITY(1,1),
 name NVARCHAR(100) NOT NULL,
@@ -58,14 +60,15 @@ INSERT INTO Permissions (name) VALUES ('CanViewAllGames'),('CanUploadGames')
 INSERT INTO Permissions (name) VALUES ('CanViewGamesDetails'),('CanAddGameToCart'),('CanRemoveGameFromCart'),
 ('EditOwnGames'),('DeleteOwnGame')
 INSERT INTO Permissions (name) VALUES ('CanApproveGame'),('CanSendWarning'),('CanEndWarning');
-
+INSERT INTO Permissions (name) VALUES ('CanEditOwnGameRequirements')
 SELECT * FROM Permissions
 
 -- Out of all the permissions, each role can perform specific permissions of that role only
 CREATE TABLE RolePermissions (roleId INT,
 permissionId INT,
 CONSTRAINT fk_roleId FOREIGN KEY (roleId) REFERENCES Roles(id) ON UPDATE CASCADE ON DELETE SET NULL,
-CONSTRAINT fk_permissionId FOREIGN KEY (permissionId) REFERENCES Permissions(id) ON UPDATE CASCADE ON DELETE SET NULL)
+CONSTRAINT fk_permissionId FOREIGN KEY (permissionId) REFERENCES Permissions(id)
+ ON UPDATE CASCADE ON DELETE SET NULL)
 DROP TABLE RolePermissions
 
 --Insert the role permissions of Super Admin role
@@ -89,8 +92,9 @@ INSERT INTO RolePermissions VALUES (3,6)
 INSERT INTO RolePermissions VALUES (4,3)
 INSERT INTO RolePermissions VALUES (4,7)
 INSERT INTO RolePermissions VALUES (4,8)
+INSERT INTO RolePermissions VALUES (4,12)
 
-SELECT * FROM RolePermissions
+SELECT * FROM Permissions
 
 SELECT * FROM RolePermissions
 TRUNCATE TABLE RolePermissions
@@ -109,6 +113,8 @@ SELECT * FROM Auth
 SELECT * FROM UserRoles
 SELECT * FROM UserPermissions
 select * from roles
+
+
 
 
 TRUNCATE TABLE Auth
@@ -147,6 +153,8 @@ DROP TABLE Games
 SELECT * FROM Games WHERE developerId = 7
 SELECT * FROM Games WHERE developerId = 3
 
+TRUNCATE TABLE Games
+
 -- Users can rate evey game, all ratings given to evry game are sotred here and the average rating
 --calculated and displayed in the game.
 CREATE TABLE Game_Ratings
@@ -164,7 +172,7 @@ CREATE TABLE Game_Ratings
         REFERENCES Games(id),
 
     CONSTRAINT checkRating
-        CHECK (ratingGiven >= 0 AND ratingGiven <= 10)
+        CHECK (ratingGiven > 0 AND ratingGiven <= 10)
 );
 DROP TABLE Game_Ratings
 
@@ -183,10 +191,10 @@ CREATE TABLE Game_Requirements
 );
 
 DROP TABLE Game_Requirements
+SELECT * FROM Games
 SELECT * FROM Game_Requirements
 
 CREATE TABLE Game_Stats (gameId INT PRIMARY KEY,
 copiesSold INT DEFAULT 0,
 moneyEarned DECIMAL (20,2) DEFAULT 0,
 FOREIGN KEY (gameId) REFERENCES Games(id))
-

@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using GAME_CAFE.Data;
 using GAME_CAFE.Dtos;
 using GAME_CAFE.Helper;
+using GAME_CAFE.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
@@ -99,6 +100,52 @@ public class DeveloperController : ControllerBase
         IEnumerable<ReturnGamesToDevDTO> list = this.opHelper.getGames(userid);
         return Ok(list);
     }
+    [HttpGet("getGameById")]
+    public IActionResult getGameById(int gameId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+
+        if (!this.opHelper.userExists(userId))
+        {
+            return BadRequest(new{message = "User not found"});
+        }
+        if (!this.opHelper.gameBelongsToDeveloper(gameId, userId))
+        {
+            return Unauthorized (new{message = "This game does not belong to you!"});
+        }
+        EditGameDTO? game = this.opHelper.getGameById(gameId);
+        if (game == null)
+        {
+            return NotFound(new { message = "Game not found!" });
+        }
+        return Ok(game);
+
+    }
+
+    [HttpGet("getGameReqById")]
+    public IActionResult getRequirementsById(int gameId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+
+        if (!this.opHelper.userExists(userId))
+        {
+            return BadRequest(new{message = "User not found"});
+        }
+        if (!this.opHelper.gameBelongsToDeveloper(gameId, userId))
+        {
+            return Unauthorized (new{message = "This game does not belong to you!"});
+        }
+        ReturnGameReqDTO? req = this.opHelper.getReqById(gameId);
+        if (req == null)
+        {
+            return NotFound(new { message = "Game not found!" });
+        }
+        return Ok(req);
+
+    }
+
     [Authorize (Policy = "DeleteOwnGame")]
     [HttpDelete("deleteMyGame")]
     public IActionResult deleteMyGame(int gameId)
@@ -110,5 +157,39 @@ public class DeveloperController : ControllerBase
             return Unauthorized (new{message = "This game does not belong to you!"});
         }
         return this.opHelper.deleteGame(gameId);
+    }
+    [Authorize (Policy = "EditOwnGames")]
+    [HttpPut("editMyGame")]
+    public IActionResult editMyGame(EditGameDTO editedGame, int gameId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (!this.opHelper.gameBelongsToDeveloper(gameId, userId))
+        {
+            return Unauthorized (new{message = "This game does not belong to you!"});
+        }
+        bool edited = this.opHelper.editGame(editedGame, gameId);
+        if (edited)
+        {
+            return new OkObjectResult(new { message = "Game edited!" });
+        }
+        return BadRequest (new {message = "Game could not be edited!"});
+    }
+    [Authorize (Policy = "CanEditOwnGameRequirements")]
+    [HttpPut("editMyGameReuirements")]
+    public IActionResult editGameRequirements(EditRequirementsDTO requirements, int gameId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (!this.opHelper.gameBelongsToDeveloper(gameId, userId))
+        {
+            return Unauthorized (new{message = "This game does not belong to you!"});
+        }
+        bool edited = this.opHelper.editRequirements(requirements,gameId);
+        if (edited)
+        {
+            return new OkObjectResult(new { message = "Requirements edited!" });
+        }
+        return BadRequest(new{message = "Unable to edit!"});
     }
 }

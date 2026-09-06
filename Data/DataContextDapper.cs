@@ -102,6 +102,23 @@ public class DataContextDapper
             return con.Query<T>(sql, parameters);
         }
     }
+    public T? returnSingleObj_WithParameters<T>(string sql, List<SqlParameter> par)
+    {
+        using (SqlConnection con = new SqlConnection(
+            this._config.GetConnectionString("Gaming_Cafe_DB")))
+        {
+            con.Open();
+
+            DynamicParameters parameters = new DynamicParameters();
+
+            foreach (SqlParameter p in par)
+            {
+                parameters.Add(p.ParameterName, p.Value);
+            }
+
+            return con.QuerySingleOrDefault<T>(sql, parameters);
+        }
+    }
     public int ExecuteScalar_WithParameters(string sql, List<SqlParameter> parameters)
 {
     using SqlConnection connection = new SqlConnection(this._config.GetConnectionString("Gaming_Cafe_DB"));
@@ -113,31 +130,29 @@ public class DataContextDapper
         parameters.ToDictionary(p => p.ParameterName, p => p.Value)
     );
 }
-    public T? returnSingle_WithParameters<T>(
-    string sql,
-    List<SqlParameter> par)
-{
-    using (SqlConnection con = new SqlConnection(
-        this._config.GetConnectionString("Gaming_Cafe_DB")))
+    public T? returnSingle_WithParameters<T>(string sql,List<SqlParameter> par)
     {
-        con.Open();
-
-        using (SqlCommand cmd = new SqlCommand(sql, con))
+        using (SqlConnection con = new SqlConnection(
+            this._config.GetConnectionString("Gaming_Cafe_DB")))
         {
-            foreach (SqlParameter p in par)
+            con.Open();
+
+            using (SqlCommand cmd = new SqlCommand(sql, con))
             {
-                cmd.Parameters.Add(p);
+                foreach (SqlParameter p in par)
+                {
+                    cmd.Parameters.Add(p);
+                }
+
+                object? result = cmd.ExecuteScalar();
+
+                if (result == null || result == DBNull.Value)
+                {
+                    return default;
+                }
+
+                return (T)Convert.ChangeType(result, typeof(T));
             }
-
-            object? result = cmd.ExecuteScalar();
-
-            if (result == null || result == DBNull.Value)
-            {
-                return default;
-            }
-
-            return (T)Convert.ChangeType(result, typeof(T));
         }
     }
-}
 }
