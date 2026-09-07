@@ -319,4 +319,39 @@ public class OperationsHelper
         bool done = this._dapper.ExecuteSQL_WithParameters(sql,parameters);
         return done;
     }
+    public IEnumerable<ReturnGamesToCustomerDTO> returnGamesToCust()
+    {
+        string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
+        discountPercentage FROM Games";
+   
+        IEnumerable<ReturnGamesToCustomerDTO> list = this._dapper.loadData<ReturnGamesToCustomerDTO>(sql);
+        int numOfRatings=0;
+        decimal totalRating = 0;
+        decimal avgRating=0;
+        foreach (var game in list)
+        {            
+            sql = @"SELECT name FROM Users u WHERE u.id = (SELECT developerId from Games g WHERE g.id = @gameId)";
+            Console.WriteLine(sql+"\n"+game.id);
+            List<SqlParameter> parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@gameId", game.id)
+            };
+            game.developerName = this._dapper.returnSingle_WithParameters<string>(sql,parameters);
+
+            game.rating = 0;
+            numOfRatings = this.getRatingAmount(game.id);
+            totalRating = this.getRatingTotal(game.id);
+            if(numOfRatings == 0 || totalRating == 0)
+            {
+                continue;
+            }
+            avgRating = totalRating/numOfRatings;
+            game.rating = avgRating;
+            numOfRatings = 0;
+            totalRating = 0;
+            avgRating = 0;
+        }
+        return list;
+    }
+    
 }

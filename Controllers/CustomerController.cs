@@ -39,4 +39,16 @@ public class CustomerController : ControllerBase
         string name = this.opHelper.getName(id);
         return name;
     }
+    [HttpGet("getAllGames")]
+    [Authorize(Policy = "CanViewAllGames")]
+    public IActionResult getAllGames()
+    {
+        IEnumerable<ReturnGamesToCustomerDTO> list = this.opHelper.returnGamesToCust();
+        
+        if (list != null)
+        {
+            return Ok(list);
+        }
+        return BadRequest(new{message = "Games not found"});
+    }
 }

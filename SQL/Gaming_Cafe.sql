@@ -226,3 +226,6 @@ INSERT INTO Sale_Records VALUES(2,2,839)
 SELECT COUNT(*) FROM Sale_Records WHERE gameId = 2
 
 SELECT SUM(price) FROM Sale_Records WHERE gameId = 2
+
+
+
