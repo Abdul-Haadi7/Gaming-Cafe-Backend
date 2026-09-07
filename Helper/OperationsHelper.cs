@@ -148,7 +148,7 @@ public class OperationsHelper
     public IEnumerable<ReturnGamesToDevDTO> getGames(int devId)
     {
         string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
-        discountPercentage,hasWarning,isActive FROM Games WHERE developerId = @devId";
+        discountPercentage,hasWarning,isActive,isPublic FROM Games WHERE developerId = @devId";
         List<SqlParameter> parameters = new List<SqlParameter>
         {
             new SqlParameter("@devId", devId),
@@ -308,5 +308,15 @@ public class OperationsHelper
             new SqlParameter("@id", gameId)
         };
         return this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+    }
+    public bool toggleAvailability(int gameId)
+    {
+        string sql = @"UPDATE Games SET isPublic = ~isPublic WHERE id = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id", gameId)
+        };
+        bool done = this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+        return done;
     }
 }

@@ -16,4 +16,5 @@ public class ReturnGamesToDevDTO
     public int soldAmount {get;set;}
     public decimal earned {get;set;}
     public decimal rating {get;set;}
+    public bool isPublic {get;set;}
 }

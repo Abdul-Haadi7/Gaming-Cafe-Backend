@@ -138,6 +138,7 @@ approvedBy INT DEFAULT NULL,
 rejectedBy INT DEFAULT NULL,
 rejectionReason NVARCHAR(MAX) DEFAULT NULL,
 hasWarning BIT DEFAULT 0,
+isPublic BIT DEFAULT 1
 CONSTRAINT fk_developerId FOREIGN KEY (developerId) REFERENCES Users(id) 
 ON UPDATE CASCADE ON DELETE SET NULL,
 
@@ -176,6 +177,9 @@ CREATE TABLE Game_Ratings
 );
 DROP TABLE Game_Ratings
 
+INSERT INTO Game_Ratings values (1,4,10)
+INSERT INTO Game_Ratings values (2,4,0.1)
+
 CREATE TABLE Game_Requirements
 (
     gameId INT PRIMARY KEY,
@@ -192,6 +196,7 @@ CREATE TABLE Game_Requirements
 
 DROP TABLE Game_Requirements
 SELECT * FROM Games
+
 SELECT * FROM Game_Requirements
 SELECT * FROM Game_Ratings
 
@@ -215,7 +220,7 @@ REFERENCES Users(id))
 
 DROP TABLE Sale_Records
 
-INSERT INTO Sale_Records VALUES(2,1,839)
+INSERT INTO Sale_Records VALUES(4,1,129.36)
 INSERT INTO Sale_Records VALUES(2,2,839)
 
 SELECT COUNT(*) FROM Sale_Records WHERE gameId = 2

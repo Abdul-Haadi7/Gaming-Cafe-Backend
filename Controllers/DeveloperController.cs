@@ -193,4 +193,22 @@ public class DeveloperController : ControllerBase
         }
         return BadRequest(new{message = "Unable to edit!"});
     }
+    [Authorize (Policy = "EditOwnGames")]
+    [HttpPut("toggleAvailability")]
+    public IActionResult toggleGameAvailability(int gameId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (!this.opHelper.gameBelongsToDeveloper(gameId, userId))
+        {
+            return Unauthorized (new{message = "This game does not belong to you!"});
+        }
+        bool done = this.opHelper.toggleAvailability(gameId);
+        if (done)
+        {
+            return new OkObjectResult(new { message = "Availability toggled!" });
+        }
+        return BadRequest (new {message = "Could not toggle availability!"});
+    }
+
 }
