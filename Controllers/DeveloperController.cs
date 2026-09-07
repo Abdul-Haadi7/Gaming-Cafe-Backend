@@ -101,6 +101,7 @@ public class DeveloperController : ControllerBase
         return Ok(list);
     }
     [HttpGet("getGameById")]
+    [Authorize (Policy = "CanViewOwnGame")]
     public IActionResult getGameById(int gameId)
     {
         string? id = this.User.FindFirst("id")?.Value;

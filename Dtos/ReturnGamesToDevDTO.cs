@@ -13,4 +13,7 @@ public class ReturnGamesToDevDTO
     public decimal discountPercentage{get;set;}
     public bool hasWarning {get;set;}
     public bool isActive{get;set;}
+    public int soldAmount {get;set;}
+    public decimal earned {get;set;}
+    public decimal rating {get;set;}
 }

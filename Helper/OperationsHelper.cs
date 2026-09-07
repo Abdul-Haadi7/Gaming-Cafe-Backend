@@ -154,7 +154,76 @@ public class OperationsHelper
             new SqlParameter("@devId", devId),
         };
         IEnumerable<ReturnGamesToDevDTO> list = this._dapper.loadObject_WithParameters<ReturnGamesToDevDTO>(sql,parameters);
+        int numOfRatings=0;
+        decimal totalRating = 0;
+        decimal avgRating=0;
+        foreach (var game in list)
+        {
+            game.rating = 0;
+            game.soldAmount = 0;
+            game.earned = 0;
+            game.soldAmount = this.getTotalSold(game.id);
+            game.earned = this.getMoneyEarned(game.id);
+            numOfRatings = this.getRatingAmount(game.id);
+            totalRating = this.getRatingTotal(game.id);
+            if(numOfRatings == 0 || totalRating == 0)
+            {
+                continue;
+            }
+            avgRating = totalRating/numOfRatings;
+            game.rating = avgRating;
+            numOfRatings = 0;
+            totalRating = 0;
+            avgRating = 0;
+            
+        }
         return list;
+    }
+    public int getRatingAmount(int gameId)
+    {
+        //Count the number of ratings
+        string sqlCount = @"SELECT COUNT(*) FROM Game_Ratings WHERE gameId = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id", gameId)
+        };
+        int numOfRatings=0;
+        numOfRatings = this._dapper.returnSingle_WithParameters<int>(sqlCount,parameters);
+        return numOfRatings;
+    }
+    public decimal getRatingTotal(int gameId)
+    {
+        //Count the number of ratings
+        string sqlCount = @"SELECT SUM(ratingGiven) FROM Game_Ratings WHERE gameId = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id", gameId)
+        };
+        decimal numOfRatings=0;
+        numOfRatings = this._dapper.returnSingle_WithParameters<decimal>(sqlCount,parameters);
+        return numOfRatings;
+    }
+    public int getTotalSold(int gameId)
+    {
+        int sold = 0;
+        string sql = @"SELECT COUNT(*) FROM Sale_Records WHERE gameId = @id"; 
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id", gameId)
+        };
+        sold = this._dapper.returnSingle_WithParameters<int>(sql,parameters);
+        return sold;
+    }
+    public decimal getMoneyEarned(int gameId)
+    {
+        decimal total = 0;
+        string sql = @"SELECT SUM(price) FROM Sale_Records WHERE gameId = @id"; 
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id", gameId)
+        };
+        total = this._dapper.returnSingle_WithParameters<decimal>(sql,parameters);
+        return total;
     }
     public Boolean userExists(int userId)
     {
@@ -189,6 +258,7 @@ public class OperationsHelper
             new SqlParameter("@id", gameId),
         };
         EditGameDTO? game = this._dapper.returnSingleObj_WithParameters<EditGameDTO>(sql,parameters);
+        
         return game;
     }
     public ReturnGameReqDTO? getReqById(int gameId)

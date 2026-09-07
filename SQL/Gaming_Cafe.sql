@@ -61,6 +61,7 @@ INSERT INTO Permissions (name) VALUES ('CanViewGamesDetails'),('CanAddGameToCart
 ('EditOwnGames'),('DeleteOwnGame')
 INSERT INTO Permissions (name) VALUES ('CanApproveGame'),('CanSendWarning'),('CanEndWarning');
 INSERT INTO Permissions (name) VALUES ('CanEditOwnGameRequirements')
+INSERT INTO Permissions (name) VALUES ('CanViewOwnGame')
 SELECT * FROM Permissions
 
 -- Out of all the permissions, each role can perform specific permissions of that role only
@@ -93,6 +94,7 @@ INSERT INTO RolePermissions VALUES (4,3)
 INSERT INTO RolePermissions VALUES (4,7)
 INSERT INTO RolePermissions VALUES (4,8)
 INSERT INTO RolePermissions VALUES (4,12)
+INSERT INTO RolePermissions VALUES (4,13)
 
 SELECT * FROM Permissions
 
@@ -113,8 +115,6 @@ SELECT * FROM Auth
 SELECT * FROM UserRoles
 SELECT * FROM UserPermissions
 select * from roles
-
-
 
 
 TRUNCATE TABLE Auth
@@ -193,8 +193,31 @@ CREATE TABLE Game_Requirements
 DROP TABLE Game_Requirements
 SELECT * FROM Games
 SELECT * FROM Game_Requirements
+SELECT * FROM Game_Ratings
 
-CREATE TABLE Game_Stats (gameId INT PRIMARY KEY,
-copiesSold INT DEFAULT 0,
-moneyEarned DECIMAL (20,2) DEFAULT 0,
-FOREIGN KEY (gameId) REFERENCES Games(id))
+SELECT COUNT(*) FROM Game_Ratings WHERE gameId =2
+
+SELECT SUM(ratingGiven) FROM Game_Ratings WHERE gameId = 2
+
+INSERT INTO Game_Ratings VALUES(1,2,9.6)
+INSERT INTO Game_Ratings VALUES(2,2,8.2)
+
+CREATE TABLE Sale_Records (gameId INT NOT NULL,
+buyerId INT NOT NULL,
+price DECIMAL(10,2),
+PRIMARY KEY (gameId,buyerId),
+CONSTRAINT FK_gameId
+FOREIGN KEY (gameId)
+REFERENCES Games(id),
+CONSTRAINT FK_buyerId
+FOREIGN KEY (buyerId)
+REFERENCES Users(id))
+
+DROP TABLE Sale_Records
+
+INSERT INTO Sale_Records VALUES(2,1,839)
+INSERT INTO Sale_Records VALUES(2,2,839)
+
+SELECT COUNT(*) FROM Sale_Records WHERE gameId = 2
+
+SELECT SUM(price) FROM Sale_Records WHERE gameId = 2
