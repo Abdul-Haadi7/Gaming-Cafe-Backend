@@ -229,3 +229,15 @@ SELECT SUM(price) FROM Sale_Records WHERE gameId = 2
 
 
 
+CREATE TABLE Cart (buyerId INT NOT NULL,
+gameId INT NOT NULL,
+PRIMARY KEY (buyerId,gameId),
+CONSTRAINT FK_buyerId_cart
+FOREIGN KEY (buyerId)
+REFERENCES Users(id),
+
+CONSTRAINT FK_gameId_cart
+FOREIGN KEY (gameId)
+REFERENCES Games(id))
+
+SELECT * FROM Cart

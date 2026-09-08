@@ -4,6 +4,7 @@ using GAME_CAFE.Dtos;
 using GAME_CAFE.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.JSInterop.Infrastructure;
 
 namespace GAME_CAFE.Helper;
 
@@ -322,7 +323,7 @@ public class OperationsHelper
     public IEnumerable<ReturnGamesToCustomerDTO> returnGamesToCust()
     {
         string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
-        discountPercentage FROM Games";
+        discountPercentage FROM Games WHERE isActive = 1 AND isPublic = 1";
    
         IEnumerable<ReturnGamesToCustomerDTO> list = this._dapper.loadData<ReturnGamesToCustomerDTO>(sql);
         int numOfRatings=0;
@@ -331,7 +332,7 @@ public class OperationsHelper
         foreach (var game in list)
         {            
             sql = @"SELECT name FROM Users u WHERE u.id = (SELECT developerId from Games g WHERE g.id = @gameId)";
-            Console.WriteLine(sql+"\n"+game.id);
+    
             List<SqlParameter> parameters = new List<SqlParameter>
             {
                 new SqlParameter("@gameId", game.id)
@@ -352,6 +353,33 @@ public class OperationsHelper
             avgRating = 0;
         }
         return list;
+    }
+    public bool alreadyInCart(int gameId, int userId)
+    {
+        bool done = false;
+        string sql = @"SELECT COUNT(*) FROM Cart WHERE gameId = @gameId AND buyerId = @userId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@userId", userId),
+            new SqlParameter("@gameId", gameId)
+        };
+        int count = this._dapper.returnSingle_WithParameters<int>(sql,parameters);
+        if(count > 0)
+        {
+            done = true;
+        }
+        return done;
+    }
+    public bool addToCart(int gameId, int userId)
+    {
+        string sql = @"INSERT INTO Cart VALUES (@userId,@gameId)";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@userId", userId),
+            new SqlParameter("@gameId", gameId)
+        };
+        bool done = this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+        return done;
     }
     
 }

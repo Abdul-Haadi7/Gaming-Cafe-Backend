@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using GAME_CAFE.Data;
 using GAME_CAFE.Dtos;
 using GAME_CAFE.Helper;
+using GAME_CAFE.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
@@ -50,5 +51,27 @@ public class CustomerController : ControllerBase
             return Ok(list);
         }
         return BadRequest(new{message = "Games not found"});
+    }
+    [HttpPost("addGameToCart")]
+    [Authorize(Policy = "CanAddGameToCart")]
+    public IActionResult addToCart(int gameId)
+    {
+        if (!this.opHelper.gameExists(gameId))
+        {
+            return BadRequest(new{message = "Games not found"});
+        }
+        string? userId = this.User.FindFirst("id")?.Value;
+        int id = int.Parse(userId);
+        if (this.opHelper.alreadyInCart(gameId, id))
+        {
+            return BadRequest("This game is already in your cart!");
+        }
+        bool done = this.opHelper.addToCart(gameId,id);
+        if (done)
+        {
+            return new OkObjectResult("Game added to cart!" );
+        }
+        return BadRequest("Game could not be added to cart!");
+
     }
 }
