@@ -13,5 +13,6 @@ public class ReturnGamesToCustomerDTO
     public decimal discountPercentage{get;set;}
     public string developerName {get;set;}
     public decimal rating {get;set;}
+    public bool alreadyOwned {get;set;}
 
 }

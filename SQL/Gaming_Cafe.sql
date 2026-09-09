@@ -62,6 +62,9 @@ INSERT INTO Permissions (name) VALUES ('CanViewGamesDetails'),('CanAddGameToCart
 INSERT INTO Permissions (name) VALUES ('CanApproveGame'),('CanSendWarning'),('CanEndWarning');
 INSERT INTO Permissions (name) VALUES ('CanEditOwnGameRequirements')
 INSERT INTO Permissions (name) VALUES ('CanViewOwnGame')
+INSERT INTO Permissions (name) VALUES ('CanRateGames')
+INSERT INTO Permissions (name) VALUES ('CanViewOwnCart')
+INSERT INTO Permissions (name) VALUES ('CanCheckOut')
 SELECT * FROM Permissions
 
 -- Out of all the permissions, each role can perform specific permissions of that role only
@@ -88,6 +91,9 @@ INSERT INTO RolePermissions VALUES (3,2)
 INSERT INTO RolePermissions VALUES (3,4)
 INSERT INTO RolePermissions VALUES (3,5)
 INSERT INTO RolePermissions VALUES (3,6)
+INSERT INTO RolePermissions VALUES (3,14)
+INSERT INTO RolePermissions VALUES (3,15)
+INSERT INTO RolePermissions VALUES (3,16)
 
 --Insert the role permissions of Developer role
 INSERT INTO RolePermissions VALUES (4,3)
@@ -109,6 +115,9 @@ CONSTRAINT fk_permissionId_userPermissions FOREIGN KEY (permissionId) REFERENCES
 DROP TABLE UserPermissions
 SELECT * FROM UserPermissions
 
+
+
+SELECT * FROM UserPermissions
 
 SELECT * FROM Users
 SELECT * FROM Auth
@@ -219,6 +228,8 @@ FOREIGN KEY (buyerId)
 REFERENCES Users(id))
 
 DROP TABLE Sale_Records
+SELECT * FROM Sale_Records
+SELECT * FROM Sale_Records WHERE buyerId = 3
 
 INSERT INTO Sale_Records VALUES(4,1,129.36)
 INSERT INTO Sale_Records VALUES(2,2,839)
@@ -227,6 +238,7 @@ SELECT COUNT(*) FROM Sale_Records WHERE gameId = 2
 
 SELECT SUM(price) FROM Sale_Records WHERE gameId = 2
 
+DROP TABLE Sale_Records
 
 
 CREATE TABLE Cart (buyerId INT NOT NULL,
@@ -241,3 +253,5 @@ FOREIGN KEY (gameId)
 REFERENCES Games(id))
 
 SELECT * FROM Cart
+
+DELETE FROM Cart WHERE buyerId = 1 AND gameId = 1

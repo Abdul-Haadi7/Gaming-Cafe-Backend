@@ -318,9 +318,34 @@ public class OperationsHelper
             new SqlParameter("@id", gameId)
         };
         bool done = this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+         //If game is set to private, remove is from carts of customers
+        if(!this.getCurrentAvailability(gameId))
+        {
+            this.deleteFromAllCarts(gameId);
+        }
         return done;
     }
-    public IEnumerable<ReturnGamesToCustomerDTO> returnGamesToCust()
+    public bool getCurrentAvailability(int gameId)
+    {
+        string sql = @"SELECT isPublic FROM games WHERE id = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id", gameId)
+        };
+        bool avail = this._dapper.returnSingle_WithParameters<bool>(sql,parameters);
+       
+        return avail;
+    }
+    public void deleteFromAllCarts(int gameId)
+    {
+        String sql = @"DELETE FROM Cart WHERE gameId = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id", gameId)
+        };
+        this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+    }
+    public IEnumerable<ReturnGamesToCustomerDTO> returnGamesToCust(int userId)
     {
         string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
         discountPercentage FROM Games WHERE isActive = 1 AND isPublic = 1";
@@ -351,8 +376,27 @@ public class OperationsHelper
             numOfRatings = 0;
             totalRating = 0;
             avgRating = 0;
+            game.alreadyOwned = this.alreadyOwned(userId,game.id);
         }
         return list;
+    }
+    public bool alreadyOwned(int userId, int gameId)
+    {
+        string sql = @"SELECT COUNT(*) FROM Sale_Records WHERE buyerId = @buyerId AND gameId = @gameId";
+        List<SqlParameter> parameters2 = new List<SqlParameter>
+        {
+            new SqlParameter("@buyerId", userId),
+            new SqlParameter("@gameId", gameId)
+        };
+        int count = this._dapper.returnSingle_WithParameters<int>(sql,parameters2);
+        if (count > 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
     public ReturnGamesToCustomerDTO returnSingleGameToCust(int gameId)
     {
@@ -449,5 +493,140 @@ public class OperationsHelper
             new SqlParameter("@gameId", gameId)
         };
         return this._dapper.returnSingle_WithParameters<decimal>(sql,parameters);
+    }
+    public List<ReturnCartGamesDTO> getCartGames(int userId)
+    {
+        List<ReturnCartGamesDTO> games = new List<ReturnCartGamesDTO>();
+        string sql = @"SELECT gameId FROM Cart WHERE buyerId = @userId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@userId", userId)
+        };
+        IEnumerable<int> gameIds = this._dapper.loadData_WithParameters<int>(sql,parameters);
+        if(gameIds == null)
+        {
+            return null;
+        }
+        string? name="";
+        decimal price = 0;
+        int discount = 0;
+        ReturnCartGamesDTO game;
+        foreach(var id in gameIds)
+        {
+            //Get game`s name
+            name = this.getGameName(id);
+
+            //Get game`s real price
+            price = this.getGamePrice(id);
+
+            //Get game`s discount percentage
+            discount = this.getGameDiscount(id);
+
+            //Calculate discounted price
+            if(discount > 0)
+            {
+                price = price - (price * discount / 100);
+            }
+            game = new ReturnCartGamesDTO(id,name,price);
+            games.Add(game);
+            name = "";
+            price = discount = 0;
+        }
+        return games;
+    }
+    private string getGameName(int gameId)
+    {
+        string sql = @"SELECT name FROM Games WHERE id = @gameId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@gameId", gameId)
+        };
+        return this._dapper.returnSingle_WithParameters<string>(sql,parameters);
+    }
+    private decimal getGamePrice(int gameId)
+    {
+        string sql = @"SELECT price FROM Games WHERE id = @gameId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@gameId", gameId)
+        };
+        return this._dapper.returnSingle_WithParameters<decimal>(sql,parameters);
+    }
+    private int getGameDiscount(int gameId)
+    {
+        string sql = @"SELECT discountPercentage FROM Games WHERE id = @gameId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@gameId", gameId)
+        };
+        return this._dapper.returnSingle_WithParameters<int>(sql,parameters);
+    }
+
+
+    public bool deleteFromCart(int userId,int gameId)
+    {
+        string sql = @"DELETE FROM CART WHERE buyerId = @userId AND gameId = @gameId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@userId", userId),
+            new SqlParameter("@gameId", gameId)
+        };
+        return this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+    }
+    public bool clearCart(int userId)
+    {
+        string sql = @"DELETE FROM CART WHERE buyerId = @userId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@userId", userId)
+        };
+        return this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+    }
+    public bool checkOut(int buyerid)
+    {
+        //Fetch all the gameIds in customer`s cart currently
+        string sql = @"SELECT gameId FROM Cart WHERE buyerId = @buyerid";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@buyerid", buyerid)
+        };
+        IEnumerable<int> gameIds = this._dapper.loadData_WithParameters<int>(sql,parameters);
+        decimal price = 0;
+        int discount = 0;
+        //Insert each game into sale records one by one
+        foreach(var gameId in gameIds)
+        {
+            price = this.getGamePrice(gameId);
+            discount = this.getGameDiscount(gameId);
+            if(discount > 0)
+            {
+                price = price - (price * discount / 100);
+            }
+            sql = @"INSERT INTO Sale_Records VALUES (@gameId,@buyerId,@price)";
+            List<SqlParameter> parameters2 = new List<SqlParameter>
+            {
+                new SqlParameter("@gameId", gameId),
+                new SqlParameter("@buyerId", buyerid),
+                new SqlParameter("@price", price)
+            };
+            if (!this._dapper.ExecuteSQL_WithParameters(sql, parameters2))
+            {
+                return false;
+            }
+        }
+        if (this.clearCart(buyerid))
+        {
+            return true;
+        }
+        return false;
+    }
+    public int getCartCount(int userId)
+    {
+        string sql = "SELECT COUNT(*) FROM Cart WHERE buyerId = @buyerId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@buyerId", userId)
+        };
+        return this._dapper.returnSingle_WithParameters<int>(sql,parameters);
     }
 }

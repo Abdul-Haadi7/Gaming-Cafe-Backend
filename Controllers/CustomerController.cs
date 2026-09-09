@@ -44,7 +44,9 @@ public class CustomerController : ControllerBase
     [Authorize(Policy = "CanViewAllGames")]
     public IActionResult getAllGames()
     {
-        IEnumerable<ReturnGamesToCustomerDTO> list = this.opHelper.returnGamesToCust();
+        string? userId = this.User.FindFirst("id")?.Value;
+        int id = int.Parse(userId);
+        IEnumerable<ReturnGamesToCustomerDTO> list = this.opHelper.returnGamesToCust(id);
         
         if (list != null)
         {
@@ -111,7 +113,7 @@ public class CustomerController : ControllerBase
         return BadRequest("Could not get rating!");
     }
     [HttpPost("rateGame")]
-    // [Authorize(Policy = "CanRateGames")]
+    [Authorize(Policy = "CanRateGames")]
     public IActionResult rateGame(decimal gameRating,int gameId)
     {
         Console.WriteLine(gameRating);
@@ -158,6 +160,85 @@ public class CustomerController : ControllerBase
             return NotFound(new { message = "Requirements not found!" });
         }
         return Ok(req);
-
+    }
+    [HttpGet("getCartItems")]
+    [Authorize(Policy = "CanViewOwnCart")]
+    public IActionResult getCartItems()
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (!this.opHelper.userExists(userId))
+        {
+            return BadRequest(new{message = "User not found"});
+        }
+        List<ReturnCartGamesDTO> games = this.opHelper.getCartGames(userId);
+        if (games != null)
+        {
+            return Ok(games);
+        } 
+        return Ok(new List<ReturnCartGamesDTO>());
+    }
+    [HttpDelete("deleteFromCart")]
+    [Authorize(Policy = "CanRemoveGameFromCart")]
+    public IActionResult deleteFromCart(int gameId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (!this.opHelper.userExists(userId))
+        {
+            return BadRequest(new{message = "User not found"});
+        }
+        if (this.opHelper.deleteFromCart(userId, gameId))
+        {
+            return Ok(new { message = "Game removed from cart!" });
+        }
+        return BadRequest("Game could not be removed from cart!");
+    }
+    [HttpDelete("clearCart")]
+    [Authorize(Policy = "CanRemoveGameFromCart")]
+    public IActionResult clearCart()
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (!this.opHelper.userExists(userId))
+        {
+            return BadRequest(new{message = "User not found"});
+        }
+        if (this.opHelper.clearCart(userId))
+        {
+            return Ok(new { message = "Cart cleared!" });
+        }
+        return BadRequest("Cart could not be cleared!");
+    }
+    [HttpPost("checkOut")]
+    [Authorize(Policy = "CanCheckOut")]
+    public IActionResult checkOut()
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (!this.opHelper.userExists(userId))
+        {
+            return BadRequest(new{message = "User not found"});
+        }
+        if (this.opHelper.checkOut(userId))
+        {
+            return Ok(new { message = "Download started!" });
+        }
+        return BadRequest("Cart could not be cleared!");
+    }
+    [HttpGet("getCartCount")]
+    [Authorize(Policy = "CanAddGameToCart")]
+    public int getCartCount()
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        return this.opHelper.getCartCount(userId);
+    }
+    [HttpGet("isGameOwned")]
+    public bool alreadyOwned(int gameId)
+    {
+       string? id = this.User.FindFirst("id")?.Value;
+       int userId = int.Parse(id);
+       return this.opHelper.alreadyOwned(userId,gameId);
     }
 }
