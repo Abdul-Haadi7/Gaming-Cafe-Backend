@@ -354,6 +354,40 @@ public class OperationsHelper
         }
         return list;
     }
+    public ReturnGamesToCustomerDTO returnSingleGameToCust(int gameId)
+    {
+        string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
+        discountPercentage FROM Games WHERE id = @gameId AND isActive = 1 AND isPublic = 1";
+   
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@gameId", gameId)
+        };
+        ReturnGamesToCustomerDTO game= this._dapper.returnSingleObj_WithParameters<ReturnGamesToCustomerDTO>(sql,parameters);
+        int numOfRatings=0;
+        decimal totalRating = 0;
+        decimal avgRating=0;
+        if(game!=null)
+        {            
+            sql = @"SELECT name FROM Users u WHERE u.id = (SELECT developerId from Games g WHERE g.id = @gameId)";
+    
+            List<SqlParameter> parameters2 = new List<SqlParameter>
+            {
+                new SqlParameter("@gameId", game.id)
+            };
+            game.developerName = this._dapper.returnSingle_WithParameters<string>(sql,parameters2);
+            game.rating = 0;
+            numOfRatings = this.getRatingAmount(game.id);
+            totalRating = this.getRatingTotal(game.id);
+            if(numOfRatings != 0 && totalRating != 0)
+            {
+                avgRating = totalRating/numOfRatings;
+                game.rating = avgRating;
+            }
+     
+        }
+        return game;
+    }
     public bool alreadyInCart(int gameId, int userId)
     {
         bool done = false;
@@ -381,5 +415,39 @@ public class OperationsHelper
         bool done = this._dapper.ExecuteSQL_WithParameters(sql,parameters);
         return done;
     }
-    
+    public bool rateGame(int userId,int gameId, decimal rating)
+    {
+        string sql = @"INSERT INTO Game_Ratings VALUES (@userId,@gameId,@rating)";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@userId", userId),
+            new SqlParameter("@gameId", gameId),
+            new SqlParameter("@rating", rating)
+        };
+        return this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+    }
+    public bool alreadyRated(int userId,int gameId)
+    {
+        string sql = @"SELECT COUNT(*) FROM Game_Ratings WHERE userId = @userId AND gameId = @gameId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@userId", userId),
+            new SqlParameter("@gameId", gameId)
+        };
+        int count = this._dapper.returnSingle_WithParameters<int>(sql,parameters);
+        if(count>0){
+            return true;
+        }
+        return false;
+    }
+    public decimal getRating(int userId, int gameId)
+    {
+        string sql = @"SELECT ratingGiven FROM Game_Ratings WHERE userId = @userId and gameId = @gameId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@userId", userId),
+            new SqlParameter("@gameId", gameId)
+        };
+        return this._dapper.returnSingle_WithParameters<decimal>(sql,parameters);
+    }
 }

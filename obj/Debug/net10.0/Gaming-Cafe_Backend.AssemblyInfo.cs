@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Gaming-Cafe_Backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+992d63eafce41aa9e9fbc8d62f5e81aa90bcc804")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a1d58205394eab3bd8f625825f618d1543c1220d")]
 [assembly: System.Reflection.AssemblyProductAttribute("Gaming-Cafe_Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Gaming-Cafe_Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

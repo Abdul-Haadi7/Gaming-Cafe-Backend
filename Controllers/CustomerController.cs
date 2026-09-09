@@ -52,13 +52,25 @@ public class CustomerController : ControllerBase
         }
         return BadRequest(new{message = "Games not found"});
     }
+    [HttpGet("getSingleGame")]
+    [Authorize(Policy = "CanViewAllGames")]
+    public IActionResult getGameById(int gameId)
+    {
+        ReturnGamesToCustomerDTO game = this.opHelper.returnSingleGameToCust(gameId);
+        
+        if (game != null)
+        {
+            return Ok(game);
+        }
+        return BadRequest(new{message = "Game not found"});
+    }
     [HttpPost("addGameToCart")]
     [Authorize(Policy = "CanAddGameToCart")]
     public IActionResult addToCart(int gameId)
     {
         if (!this.opHelper.gameExists(gameId))
         {
-            return BadRequest(new{message = "Games not found"});
+            return NotFound(new { message = "Game not found!" });
         }
         string? userId = this.User.FindFirst("id")?.Value;
         int id = int.Parse(userId);
@@ -72,6 +84,80 @@ public class CustomerController : ControllerBase
             return new OkObjectResult("Game added to cart!" );
         }
         return BadRequest("Game could not be added to cart!");
+    }
+    [HttpGet("getMyRating")]
+    public IActionResult getRating(int gameId)
+    {
+        if (!this.opHelper.gameExists(gameId))
+        {
+            return NotFound(new { message = "Game not found!" });
+        }
+        string? userId = this.User.FindFirst("id")?.Value;
+        int id = int.Parse(userId);
+        if (!this.opHelper.alreadyRated(id, gameId))
+        {
+            return BadRequest("You have not rated this game yet!");
+        }
+        if (!this.opHelper.gameExists(gameId))
+        {
+            return NotFound(new { message = "Game not found!" });
+        }
+
+        decimal rating = this.opHelper.getRating(id,gameId);
+        if(rating > 0)
+        {
+            return Ok(rating);
+        }
+        return BadRequest("Could not get rating!");
+    }
+    [HttpPost("rateGame")]
+    // [Authorize(Policy = "CanRateGames")]
+    public IActionResult rateGame(decimal gameRating,int gameId)
+    {
+        Console.WriteLine(gameRating);
+        if (!this.opHelper.gameExists(gameId))
+        {
+            return NotFound(new { message = "Game not found!" });
+        }
+        if(gameRating > 10 || gameRating <= 0)
+        {
+            return BadRequest("Invalid rating!");
+        }
+        string? userId = this.User.FindFirst("id")?.Value;
+        int id = int.Parse(userId);
+        if (this.opHelper.alreadyRated(id, gameId))
+        {
+            return BadRequest("You already rated this game!");
+        }
+        if(userId == null)
+        {
+            return Unauthorized("User not found!");
+        }
+        bool done = this.opHelper.rateGame(id,gameId,gameRating);
+        if (!done)
+        {
+            return BadRequest("Rating could not be saved!");
+        }
+        return new OkObjectResult("Rating saved!" );
+    }
+    [HttpGet("getGameReq")]
+    [Authorize(Policy = "CanViewAllGames")]
+    public IActionResult getRequirements(int gameId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+
+        if (!this.opHelper.userExists(userId))
+        {
+            return BadRequest(new{message = "User not found"});
+        }
+     
+        ReturnGameReqDTO? req = this.opHelper.getReqById(gameId);
+        if (req == null)
+        {
+            return NotFound(new { message = "Requirements not found!" });
+        }
+        return Ok(req);
 
     }
 }
