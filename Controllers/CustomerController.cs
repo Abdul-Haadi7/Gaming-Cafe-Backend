@@ -12,7 +12,7 @@ using Microsoft.Data.SqlClient;
 namespace GAME_CAFE.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Customer")]
+
 public class CustomerController : ControllerBase
 {
     private readonly DataContextDapper _dapper;
@@ -28,6 +28,7 @@ public class CustomerController : ControllerBase
         this.opHelper = new OperationsHelper(con);
     }
 
+    [Authorize(Roles = "Customer")]
     [HttpGet("getCustName")]
     public string getName()
     {
@@ -40,6 +41,7 @@ public class CustomerController : ControllerBase
         string name = this.opHelper.getName(id);
         return name;
     }
+    [Authorize(Roles = "Customer")]
     [HttpGet("getAllGames")]
     [Authorize(Policy = "CanViewAllGames")]
     public IActionResult getAllGames()
@@ -56,6 +58,7 @@ public class CustomerController : ControllerBase
     }
     [HttpGet("getSingleGame")]
     [Authorize(Policy = "CanViewAllGames")]
+    [Authorize(Roles = "Customer, Admin, Super Admin")]
     public IActionResult getGameById(int gameId)
     {
         ReturnGamesToCustomerDTO game = this.opHelper.returnSingleGameToCust(gameId);
@@ -66,6 +69,7 @@ public class CustomerController : ControllerBase
         }
         return BadRequest(new{message = "Game not found"});
     }
+    [Authorize(Roles = "Customer")]
     [HttpPost("addGameToCart")]
     [Authorize(Policy = "CanAddGameToCart")]
     public IActionResult addToCart(int gameId)
@@ -88,6 +92,7 @@ public class CustomerController : ControllerBase
         return BadRequest("Game could not be added to cart!");
     }
     [HttpGet("getMyRating")]
+    [Authorize(Roles = "Customer")]
     public IActionResult getRating(int gameId)
     {
         if (!this.opHelper.gameExists(gameId))
@@ -112,6 +117,7 @@ public class CustomerController : ControllerBase
         }
         return BadRequest("Could not get rating!");
     }
+    [Authorize(Roles = "Customer")]
     [HttpPost("rateGame")]
     [Authorize(Policy = "CanRateGames")]
     public IActionResult rateGame(decimal gameRating,int gameId)
@@ -144,6 +150,7 @@ public class CustomerController : ControllerBase
     }
     [HttpGet("getGameReq")]
     [Authorize(Policy = "CanViewAllGames")]
+    [Authorize(Roles = "Customer, Admin, Super Admin")]
     public IActionResult getRequirements(int gameId)
     {
         string? id = this.User.FindFirst("id")?.Value;
@@ -161,6 +168,7 @@ public class CustomerController : ControllerBase
         }
         return Ok(req);
     }
+    [Authorize(Roles = "Customer")]
     [HttpGet("getCartItems")]
     [Authorize(Policy = "CanViewOwnCart")]
     public IActionResult getCartItems()
@@ -178,6 +186,7 @@ public class CustomerController : ControllerBase
         } 
         return Ok(new List<ReturnCartGamesDTO>());
     }
+    [Authorize(Roles = "Customer")]
     [HttpDelete("deleteFromCart")]
     [Authorize(Policy = "CanRemoveGameFromCart")]
     public IActionResult deleteFromCart(int gameId)
@@ -194,6 +203,7 @@ public class CustomerController : ControllerBase
         }
         return BadRequest("Game could not be removed from cart!");
     }
+    [Authorize(Roles = "Customer")]
     [HttpDelete("clearCart")]
     [Authorize(Policy = "CanRemoveGameFromCart")]
     public IActionResult clearCart()
@@ -210,6 +220,7 @@ public class CustomerController : ControllerBase
         }
         return BadRequest("Cart could not be cleared!");
     }
+    [Authorize(Roles = "Customer")]
     [HttpPost("checkOut")]
     [Authorize(Policy = "CanCheckOut")]
     public IActionResult checkOut()
@@ -226,6 +237,7 @@ public class CustomerController : ControllerBase
         }
         return BadRequest("Cart could not be cleared!");
     }
+    [Authorize(Roles = "Customer")]
     [HttpGet("getCartCount")]
     [Authorize(Policy = "CanAddGameToCart")]
     public int getCartCount()
@@ -234,6 +246,7 @@ public class CustomerController : ControllerBase
         int userId = int.Parse(id);
         return this.opHelper.getCartCount(userId);
     }
+    [Authorize(Roles = "Customer")]
     [HttpGet("isGameOwned")]
     public bool alreadyOwned(int gameId)
     {

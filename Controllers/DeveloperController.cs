@@ -210,5 +210,17 @@ public class DeveloperController : ControllerBase
         }
         return BadRequest (new {message = "Could not toggle availability!"});
     }
-
+    [Authorize (Policy = "CanViewOwnRequests")]
+    [HttpGet("viewPendingGameRequests")]
+    public IActionResult viewPendingGameRequests()
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        IEnumerable<ReturnGamesToDevDTO> list = this.opHelper.viewPendingGameRequests(userId);
+        if(list == null)
+        {
+            return BadRequest (new {message = "No requests found!"});
+        }
+        return Ok(list);
+    }
 }

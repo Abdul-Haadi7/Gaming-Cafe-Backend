@@ -10,7 +10,6 @@ phone VARCHAR(50) NOT NULL,
 isActive BIT NOT NULL DEFAULT 1);
 
 
-
 DROP TABLE Users
 
 DROP TABLE Users
@@ -65,6 +64,10 @@ INSERT INTO Permissions (name) VALUES ('CanViewOwnGame')
 INSERT INTO Permissions (name) VALUES ('CanRateGames')
 INSERT INTO Permissions (name) VALUES ('CanViewOwnCart')
 INSERT INTO Permissions (name) VALUES ('CanCheckOut')
+INSERT INTO Permissions (name) VALUES ('CanViewOwnRequests')
+INSERT INTO Permissions (name) VALUES ('CanViewAllCustomers')
+INSERT INTO Permissions (name) VALUES ('CanViewAllDevelopers')
+INSERT INTO Permissions (name) VALUES ('CanRejectGame')
 SELECT * FROM Permissions
 
 -- Out of all the permissions, each role can perform specific permissions of that role only
@@ -80,11 +83,17 @@ INSERT INTO RolePermissions VALUES (1,1)
 INSERT INTO RolePermissions VALUES (1,9)
 INSERT INTO RolePermissions VALUES (1,10)
 INSERT INTO RolePermissions VALUES (1,11)
+INSERT INTO RolePermissions VALUES (1,20)
+INSERT INTO RolePermissions VALUES (1,18)
+INSERT INTO RolePermissions VALUES (1,19)
 
 --Insert the role permissions of Admin role
 INSERT INTO RolePermissions VALUES (2,9)
 INSERT INTO RolePermissions VALUES (2,10)
 INSERT INTO RolePermissions VALUES (2,11)
+INSERT INTO RolePermissions VALUES (2,18)
+INSERT INTO RolePermissions VALUES (2,19)
+INSERT INTO RolePermissions VALUES (2,20)
 
 --Insert the role permissions of Customer role
 INSERT INTO RolePermissions VALUES (3,2)
@@ -101,6 +110,7 @@ INSERT INTO RolePermissions VALUES (4,7)
 INSERT INTO RolePermissions VALUES (4,8)
 INSERT INTO RolePermissions VALUES (4,12)
 INSERT INTO RolePermissions VALUES (4,13)
+INSERT INTO RolePermissions VALUES (4,17)
 
 SELECT * FROM Permissions
 
@@ -115,7 +125,7 @@ CONSTRAINT fk_permissionId_userPermissions FOREIGN KEY (permissionId) REFERENCES
 DROP TABLE UserPermissions
 SELECT * FROM UserPermissions
 
-
+INSERT INTO UserPermissions VALUES (1004,20)
 
 SELECT * FROM UserPermissions
 
@@ -142,12 +152,14 @@ downloadLink NVARCHAR(100) NOT NULL,
 imageLink NVARCHAR(100) NOT NULL,
 discountPercentage DECIMAL(4,1) NOT NULL DEFAULT 0,
 developerId INT,
-isActive BIT NOT NULL DEFAULT 1,
+isActive BIT NOT NULL DEFAULT 0,
 approvedBy INT DEFAULT NULL,
 rejectedBy INT DEFAULT NULL,
 rejectionReason NVARCHAR(MAX) DEFAULT NULL,
 hasWarning BIT DEFAULT 0,
-isPublic BIT DEFAULT 1
+isPublic BIT DEFAULT 1,
+isRejected BIT NOT NULL DEFAULT 0,
+isApproved BIT NOT NULL DEFAULT 0,
 CONSTRAINT fk_developerId FOREIGN KEY (developerId) REFERENCES Users(id) 
 ON UPDATE CASCADE ON DELETE SET NULL,
 
@@ -155,7 +167,6 @@ CONSTRAINT fk_approvedBy FOREIGN KEY (approvedBy) REFERENCES Users(id),
 
 CONSTRAINT fk_rejectedBy FOREIGN KEY (rejectedBy) REFERENCES Users(id)
 );
-
 
 
 SELECT * FROM Games
@@ -197,6 +208,7 @@ CREATE TABLE Game_Requirements
     ram NVARCHAR(100) NOT NULL,
     graphicsCard NVARCHAR(100) NOT NULL,
     storage NVARCHAR(100) NOT NULL,
+    isActive BIT DEFAULT 1,
 
     CONSTRAINT FK_GameRequirements_Game
         FOREIGN KEY (gameId)
@@ -205,6 +217,10 @@ CREATE TABLE Game_Requirements
 
 DROP TABLE Game_Requirements
 SELECT * FROM Games
+
+UPDATE Games SET hasWarning = 0 WHERE id = 1
+
+UPDATE Games SET isActive = 1 
 
 SELECT * FROM Game_Requirements
 SELECT * FROM Game_Ratings
@@ -253,5 +269,5 @@ FOREIGN KEY (gameId)
 REFERENCES Games(id))
 
 SELECT * FROM Cart
-
+DROP TABLE Cart
 DELETE FROM Cart WHERE buyerId = 1 AND gameId = 1

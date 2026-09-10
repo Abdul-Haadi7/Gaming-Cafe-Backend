@@ -1,4 +1,4 @@
-namespace GAME_CAFE.Models;
+namespace GAME_CAFE.Dtos;
 
 public class ReturnCartGamesDTO
 {

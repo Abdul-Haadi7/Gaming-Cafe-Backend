@@ -39,4 +39,28 @@ public class AdminController : ControllerBase
         string name = this.opHelper.getName(id);
         return name;
     }
+    [HttpGet("getPendingUploadRequests")]
+    [Authorize(Policy = "CanApproveGame")]
+    public IActionResult getAllGameRequests()
+    {
+        IEnumerable<ReturnUploadReqToAdminDTO> list = this.opHelper.getAllGameRequests();
+        if(list == null)
+        {
+            return BadRequest (new {message = "No requests found!"});
+        }
+        return Ok(list);
+    }
+    [HttpPut("approveGame")]
+    [Authorize(Policy = "CanApproveGame")]
+    [Authorize(Policy = "CanRejectGame")]
+    public IActionResult approveOrRejectGame(int gameId, bool approve)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (this.opHelper.approveGame(userId, gameId,approve))
+        {
+            return new OkObjectResult(new { message = "Game approved!" });
+        }
+        return BadRequest (new {message = "Failed to approve game!"});
+    }
 }

@@ -149,7 +149,8 @@ public class OperationsHelper
     public IEnumerable<ReturnGamesToDevDTO> getGames(int devId)
     {
         string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
-        discountPercentage,hasWarning,isActive,isPublic FROM Games WHERE developerId = @devId";
+        discountPercentage,hasWarning,isActive,isPublic FROM Games WHERE developerId = @devId 
+        AND isApproved = 1";
         List<SqlParameter> parameters = new List<SqlParameter>
         {
             new SqlParameter("@devId", devId),
@@ -401,7 +402,7 @@ public class OperationsHelper
     public ReturnGamesToCustomerDTO returnSingleGameToCust(int gameId)
     {
         string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
-        discountPercentage FROM Games WHERE id = @gameId AND isActive = 1 AND isPublic = 1";
+        discountPercentage FROM Games WHERE id = @gameId";
    
         List<SqlParameter> parameters = new List<SqlParameter>
         {
@@ -628,5 +629,80 @@ public class OperationsHelper
             new SqlParameter("@buyerId", userId)
         };
         return this._dapper.returnSingle_WithParameters<int>(sql,parameters);
+    }
+    public IEnumerable<ReturnGamesToDevDTO> viewPendingGameRequests(int developerId)
+    {
+        string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
+        discountPercentage,hasWarning,isActive,isPublic FROM Games WHERE developerId = @devId 
+        AND isApproved = 0 AND isRejected = 0";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@devId", developerId),
+        };
+        IEnumerable<ReturnGamesToDevDTO> list = this._dapper.loadObject_WithParameters<ReturnGamesToDevDTO>(sql,parameters);
+        return list;
+    }
+    public IEnumerable<ReturnUploadReqToAdminDTO> getAllGameRequests()
+    {
+        string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink
+        FROM Games WHERE isApproved = 0 AND isRejected = 0";
+   
+        IEnumerable<ReturnUploadReqToAdminDTO> list = this._dapper.loadData<ReturnUploadReqToAdminDTO>(sql);
+        foreach (var game in list)
+        {            
+            sql = @"SELECT name FROM Users u WHERE u.id = (SELECT developerId from Games g WHERE g.id = @gameId)";
+    
+            List<SqlParameter> parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@gameId", game.id)
+            };
+            game.developerName = this._dapper.returnSingle_WithParameters<string>(sql,parameters);
+        }
+        return list;
+    }
+
+    public bool approveGame(int adminId, int gameId, bool approve)
+    {
+        if (this.isAlreadyApprovedOrRejected(gameId))
+        {
+            return false;
+        }
+        string sql;
+        if(approve){
+            sql = @"UPDATE Games SET isApproved = 1, isActive = 1, approvedBy = @doneBy 
+            WHERE Id = @gameId";
+        }
+        else
+        {
+            sql = @"UPDATE Games SET isRejected = 1, rejectedBy = @doneBy 
+            WHERE Id = @gameId";
+        }
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@doneBy", adminId),
+            new SqlParameter("@gameId", gameId)
+        };
+        return this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+    }
+    private bool isAlreadyApprovedOrRejected(int gameId)
+    {
+        bool status = false;
+        string sql = @"SELECT isApproved FROM Games WHERE Id = @gameId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@gameId", gameId)
+        };
+        status = this._dapper.returnSingle_WithParameters<bool>(sql,parameters);
+        if (status)
+        {
+            return status;
+        }
+        sql = @"SELECT isRejected FROM Games WHERE Id = @gameId";
+        List<SqlParameter> parameters2 = new List<SqlParameter>
+        {
+            new SqlParameter("@gameId", gameId)
+        };
+        status = this._dapper.returnSingle_WithParameters<bool>(sql,parameters2);
+        return status;
     }
 }
