@@ -271,3 +271,26 @@ REFERENCES Games(id))
 SELECT * FROM Cart
 DROP TABLE Cart
 DELETE FROM Cart WHERE buyerId = 1 AND gameId = 1
+
+
+CREATE TABLE Warnings (id INT PRIMARY KEY IDENTITY (1,1),
+gameId INT NOT NULL,
+reason NVARCHAR (MAX) NOT NULL,
+issuedBy INT NOT NULL,
+issuedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+endedBy INT DEFAULT NULL,
+isActive BIT DEFAULT 1,
+
+CONSTRAINT FK_Warning_Game FOREIGN KEY (gameId) 
+REFERENCES Games (Id),
+CONSTRAINT FK_Warning_issuer FOREIGN KEY (issuedBy) 
+REFERENCES Users (Id),
+CONSTRAINT FK_Warning_ender FOREIGN KEY (endedBy) 
+REFERENCES Users (Id))
+
+SELECT * FROM Warnings
+SELECT * FROM Games
+SELECT * FROM Games WHERE developerId = 2
+
+DROP TABLE Warnings
+SELECT COUNT(*) FROM Games WHERE id = 7

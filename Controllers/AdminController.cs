@@ -63,4 +63,39 @@ public class AdminController : ControllerBase
         }
         return BadRequest (new {message = "Failed to approve game!"});
     }
+    [HttpGet("getActiveReqCount")]
+    public int getActiveRequestsCount()
+    {
+        return this.opHelper.countActiveRequest();
+    }
+    [HttpGet("getAdminAllGames")]
+    
+    [Authorize(Policy = "CanViewAllGames")]
+    public IActionResult getAllGames()
+    {
+        IEnumerable<ReturnGamesToAdminDTO> list = this.opHelper.returnGamesToAdmin();
+        
+        if (list != null)
+        {
+            return Ok(list);
+        }
+        return BadRequest(new{message = "Games not found"});
+    }
+    
+    [HttpPost("sendWarning")]
+    [Authorize(Policy = "CanSendWarning")]
+    public IActionResult sendWarning(int gameId, string reason)
+    {
+        if (!this.opHelper.gameExists(gameId))
+        {
+            return NotFound (new {message = "Game not found!"});
+        }
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (this.opHelper.sendWarning(gameId, reason, userId))
+        {
+            return new OkObjectResult(new { message = "Warning sent!" });
+        }
+        return BadRequest (new {message = "Failed to send warning!"});
+    }
 }

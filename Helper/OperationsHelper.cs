@@ -111,7 +111,7 @@ public class OperationsHelper
         int count = this._dapper.returnSingle_WithParameters<int>(sql, parameters);
         return count > 0;
     }
-    public Boolean gameExists(int gameId)
+    public bool gameExists(int gameId)
     {
         string sql = "SELECT COUNT(*) FROM Games WHERE id = @gameId";
         List<SqlParameter> parameters = new List<SqlParameter>
@@ -704,5 +704,74 @@ public class OperationsHelper
         };
         status = this._dapper.returnSingle_WithParameters<bool>(sql,parameters2);
         return status;
+    }
+    public int countActiveRequest()
+    {
+        string sql = @"SELECT COUNT(*) FROM Games WHERE isApproved = 0 AND isRejected = 0";
+        return this._dapper.returnSingle<int>(sql);
+    }
+    public IEnumerable<ReturnGamesToAdminDTO> returnGamesToAdmin()
+    {
+        string sql = @"SELECT id,name,price,genre,discountPercentage,hasWarning,isPublic
+        FROM Games WHERE isActive = 1 AND isPublic = 1";
+   
+        IEnumerable<ReturnGamesToAdminDTO> list = this._dapper.loadData<ReturnGamesToAdminDTO>(sql);
+        int numOfRatings=0;
+        decimal totalRating = 0;
+        decimal avgRating=0;
+        foreach (var game in list)
+        {            
+            sql = @"SELECT name FROM Users u WHERE u.id = (SELECT developerId from Games g WHERE g.id = @gameId)";
+    
+            List<SqlParameter> parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@gameId", game.id)
+            };
+            game.developerName = this._dapper.returnSingle_WithParameters<string>(sql,parameters);
+
+            game.rating = 0;
+            numOfRatings = this.getRatingAmount(game.id);
+            totalRating = this.getRatingTotal(game.id);
+            if(numOfRatings == 0 || totalRating == 0)
+            {
+                continue;
+            }
+            avgRating = totalRating/numOfRatings;
+            game.rating = avgRating;
+            numOfRatings = 0;
+            totalRating = 0;
+            avgRating = 0;
+        }
+        return list;
+    }
+    public bool sendWarning(int gameId,string reason,int adminId)
+    {
+        string sql = @"INSERT INTO Warnings (gameId,reason,issuedBy) VALUES (@gameId,@reason,@adminId)";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@gameId", gameId),
+            new SqlParameter("@reason", reason),
+            new SqlParameter("@adminId", adminId)
+        };
+        if(this._dapper.ExecuteSQL_WithParameters(sql, parameters)){
+            if (this.toggleHasWarning(gameId, true))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public bool toggleHasWarning(int gameId, bool status)
+    {
+        string sql = @"UPDATE Games SET hasWarning = @status WHERE Id = @gameId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@gameId", gameId),
+            new SqlParameter("@status", status)
+        };
+        if(this._dapper.ExecuteSQL_WithParameters(sql, parameters)){
+            return true;
+        }
+        return false;
     }
 }
