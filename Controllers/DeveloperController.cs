@@ -223,4 +223,45 @@ public class DeveloperController : ControllerBase
         }
         return Ok(list);
     }
+    [Authorize (Policy = "CanViewHisWarnings")]
+    [HttpGet("viewReceivedWarnings")]
+    public IActionResult viewWarnings()
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        IEnumerable<ReturnWarningsDTO> list = this.opHelper.returnWarningsToDev(userId);
+        if(list == null)
+        {
+            return BadRequest (new {message = "No warnings found!"});
+        }
+        return Ok(list);
+    }
+    [Authorize (Policy = "CanViewHisWarnings")]
+    [HttpGet("getWarningsCount")]
+    public int getWarningsCount()
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        return this.opHelper.getWarningsCount(userId);
+    }
+    [Authorize (Policy = "CanViewHisWarnings")]
+    [HttpGet("getWarningReason")]
+    public string getWarningReason(int gameId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        return this.opHelper.getWarningReason(gameId,userId);
+    }
+    [Authorize (Policy = "CanRequestToEndWarning")]
+    [HttpPost("makeEndWarningRequest")]
+    public IActionResult requestWarningEnd(WarningEndRequestDTO req)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if(this.opHelper.makeEndWarningRequest(req.warningId,req.requestNote, userId))
+        {
+            return Ok(new{message = "Request sent!"});
+        }
+        return BadRequest (new {message = "Failed to send request!"});
+    }
 }

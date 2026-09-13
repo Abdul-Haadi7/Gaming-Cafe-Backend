@@ -17,4 +17,5 @@ public class ReturnGamesToDevDTO
     public decimal earned {get;set;}
     public decimal rating {get;set;}
     public bool isPublic {get;set;}
+    public string warningReason{get;set;}
 }

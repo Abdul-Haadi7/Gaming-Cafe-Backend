@@ -68,6 +68,8 @@ INSERT INTO Permissions (name) VALUES ('CanViewOwnRequests')
 INSERT INTO Permissions (name) VALUES ('CanViewAllCustomers')
 INSERT INTO Permissions (name) VALUES ('CanViewAllDevelopers')
 INSERT INTO Permissions (name) VALUES ('CanRejectGame')
+INSERT INTO Permissions (name) VALUES ('CanViewHisWarnings')
+INSERT INTO Permissions (name) VALUES ('CanRequestToEndWarning')
 SELECT * FROM Permissions
 
 -- Out of all the permissions, each role can perform specific permissions of that role only
@@ -111,6 +113,8 @@ INSERT INTO RolePermissions VALUES (4,8)
 INSERT INTO RolePermissions VALUES (4,12)
 INSERT INTO RolePermissions VALUES (4,13)
 INSERT INTO RolePermissions VALUES (4,17)
+INSERT INTO RolePermissions VALUES (4,21)
+INSERT INTO RolePermissions VALUES (4,22)
 
 SELECT * FROM Permissions
 
@@ -125,7 +129,7 @@ CONSTRAINT fk_permissionId_userPermissions FOREIGN KEY (permissionId) REFERENCES
 DROP TABLE UserPermissions
 SELECT * FROM UserPermissions
 
-INSERT INTO UserPermissions VALUES (1004,20)
+INSERT INTO UserPermissions VALUES (2,22)
 
 SELECT * FROM UserPermissions
 
@@ -279,6 +283,8 @@ reason NVARCHAR (MAX) NOT NULL,
 issuedBy INT NOT NULL,
 issuedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
 endedBy INT DEFAULT NULL,
+endedAt DATETIME2 DEFAULT NULL,
+requestedToEnd BIT DEFAULT 0,
 isActive BIT DEFAULT 1,
 
 CONSTRAINT FK_Warning_Game FOREIGN KEY (gameId) 
@@ -294,3 +300,43 @@ SELECT * FROM Games WHERE developerId = 2
 
 DROP TABLE Warnings
 SELECT COUNT(*) FROM Games WHERE id = 7
+
+
+CREATE TABLE End_Warning_Request (id INT PRIMARY KEY IDENTITY (1,1) NOT NULL,
+warningId INT NOT NULL UNIQUE,
+requestNote NVARCHAR(MAX),
+isAccepted BIT DEFAULT 0,
+isRejected BIT DEFAULT 0,
+acceptedBy INT DEFAULT NULL,
+rejectedBy INT DEFAULT NULL,
+isActive BIT DEFAULT 1,
+
+CONSTRAINT fk_WarningId FOREIGN KEY (warningId) REFERENCES Warnings(id),
+CONSTRAINT fk_reqAcceptedBy FOREIGN KEY (acceptedBy) REFERENCES Users(id),
+CONSTRAINT fk_reqRejectedBy FOREIGN KEY (rejectedBy) REFERENCES Users(id))
+
+SELECT * FROM End_Warning_Request
+
+DROP TABLE End_Warning_Request
+
+
+SELECT COUNT(*) FROM Warnings WHERE id = 1
+        AND gameId IN (SELECT id FROM Games WHERE developerId = 1005)
+
+INSERT INTO End_Warning_Request (warningId,requestNote) VALUES (1,'dummy note')
+
+INSERT INTO End_Warning_Request 
+        (warningId, requestNote) VALUES (1,'')
+
+
+UPDATE Games SET hasWarning = 0
+
+SELECT * FROM Games
+
+SELECT * FROM Warnings
+
+SELECT * FROM End_Warning_Request
+
+SELECT reason FROM Warnings WHERE gameId = 7
+
+SELECT COUNT(*) FROM Sale_Records WHERE buyerId = 3 AND gameId = 1
