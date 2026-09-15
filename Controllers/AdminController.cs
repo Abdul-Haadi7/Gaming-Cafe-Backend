@@ -176,4 +176,26 @@ public class AdminController : ControllerBase
         return BadRequest (new {message = "Failed to reject request!"});
     }
 
+    [HttpGet("getAllDevelopers")]
+    [Authorize(Policy = "CanViewAllDevelopers")]
+    public IActionResult getAllDevelopers()
+    {
+        IEnumerable<ReturnDeveloperToAdminDTO> list = 
+        this.opHelper.getAllDevs();
+        if(list!=null){
+            return Ok(list);
+        }
+        return BadRequest (new {message = "Unable to get developers!"});
+    }
+    [HttpGet("getAllCustomers")]
+    [Authorize(Policy = "CanViewAllCustomers")]
+    public IActionResult getAllCustomers()
+    {
+        IEnumerable<ReturnCustomerToAdminDTO> list = 
+        this.opHelper.getAllCust();
+        if(list!=null){
+            return Ok(list);
+        }
+        return BadRequest (new {message = "Unable to get customers!"});
+    }
 }

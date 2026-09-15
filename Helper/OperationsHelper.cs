@@ -1132,5 +1132,51 @@ public class OperationsHelper
        
         return warning;
     }
-   
+    public IEnumerable<ReturnDeveloperToAdminDTO> getAllDevs()
+    {
+        string sql = @"SELECT u.name, u.email, u.phone,
+        COUNT(g.id) AS totalActiveGames, u.isActive
+            FROM Users u LEFT JOIN Games g 
+            ON g.developerId = u.id
+            WHERE u.id IN (SELECT ur.userId FROM UserRoles ur
+            WHERE ur.roleId IN (SELECT r.id 
+            FROM Roles r 
+            WHERE r.name = @role))
+            GROUP BY 
+            u.name,
+            u.email,
+            u.phone,
+            u.isActive";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@role","Developer")
+        };
+        IEnumerable<ReturnDeveloperToAdminDTO> list = 
+        this._dapper.loadObject_WithParameters<ReturnDeveloperToAdminDTO>(sql,parameters);
+        return list;
+    }
+
+   public IEnumerable<ReturnCustomerToAdminDTO> getAllCust()
+    {
+        string sql = @"SELECT u.name, u.email, u.phone, 
+        COUNT(s.buyerId) AS totalGamesBought, u.isActive
+            FROM Users u LEFT JOIN Sale_Records s 
+            ON s.buyerId = u.id
+            WHERE u.id IN (SELECT ur.userId FROM UserRoles ur
+            WHERE ur.roleId IN (SELECT r.id 
+            FROM Roles r 
+            WHERE r.name = @role))
+            GROUP BY 
+            u.name,
+            u.email,
+            u.phone,
+            u.isActive";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@role","Customer")
+        };
+        IEnumerable<ReturnCustomerToAdminDTO> list = 
+        this._dapper.loadObject_WithParameters<ReturnCustomerToAdminDTO>(sql,parameters);
+        return list;
+    }
 }

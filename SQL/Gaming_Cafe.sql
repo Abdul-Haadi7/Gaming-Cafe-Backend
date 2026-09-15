@@ -53,6 +53,8 @@ CREATE TABLE Permissions (id int PRIMARY KEY IDENTITY (1,1),
 name VARCHAR(100))
 DROP TABLE Permissions
 
+
+
 -- Insert all permissions of the system
 INSERT INTO Permissions (name) VALUES('CanAddAdmin')
 INSERT INTO Permissions (name) VALUES ('CanViewAllGames'),('CanUploadGames')
