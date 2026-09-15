@@ -70,6 +70,8 @@ INSERT INTO Permissions (name) VALUES ('CanViewAllDevelopers')
 INSERT INTO Permissions (name) VALUES ('CanRejectGame')
 INSERT INTO Permissions (name) VALUES ('CanViewHisWarnings')
 INSERT INTO Permissions (name) VALUES ('CanRequestToEndWarning')
+INSERT INTO Permissions (name) VALUES ('CanViewAllWarnings')
+INSERT INTO Permissions (name) VALUES ('CanViewAllEndWarningReq')
 SELECT * FROM Permissions
 
 -- Out of all the permissions, each role can perform specific permissions of that role only
@@ -88,6 +90,8 @@ INSERT INTO RolePermissions VALUES (1,11)
 INSERT INTO RolePermissions VALUES (1,20)
 INSERT INTO RolePermissions VALUES (1,18)
 INSERT INTO RolePermissions VALUES (1,19)
+INSERT INTO RolePermissions VALUES (1,23)
+INSERT INTO RolePermissions VALUES (1,24)
 
 --Insert the role permissions of Admin role
 INSERT INTO RolePermissions VALUES (2,9)
@@ -96,6 +100,8 @@ INSERT INTO RolePermissions VALUES (2,11)
 INSERT INTO RolePermissions VALUES (2,18)
 INSERT INTO RolePermissions VALUES (2,19)
 INSERT INTO RolePermissions VALUES (2,20)
+INSERT INTO RolePermissions VALUES (2,23)
+INSERT INTO RolePermissions VALUES (2,24)
 
 --Insert the role permissions of Customer role
 INSERT INTO RolePermissions VALUES (3,2)
@@ -129,7 +135,7 @@ CONSTRAINT fk_permissionId_userPermissions FOREIGN KEY (permissionId) REFERENCES
 DROP TABLE UserPermissions
 SELECT * FROM UserPermissions
 
-INSERT INTO UserPermissions VALUES (2,22)
+INSERT INTO UserPermissions VALUES (1004,24)
 
 SELECT * FROM UserPermissions
 
@@ -152,8 +158,8 @@ price DECIMAL(10,2) NOT NULL,
 intro NVARCHAR(100) NOT NULL,
 description NVARCHAR(MAX) NOT NULL,
 genre NVARCHAR(100) NOT NULL,
-downloadLink NVARCHAR(100) NOT NULL,
-imageLink NVARCHAR(100) NOT NULL,
+downloadLink NVARCHAR(MAX) NOT NULL,
+imageLink NVARCHAR(MAX) NOT NULL,
 discountPercentage DECIMAL(4,1) NOT NULL DEFAULT 0,
 developerId INT,
 isActive BIT NOT NULL DEFAULT 0,
@@ -172,6 +178,8 @@ CONSTRAINT fk_approvedBy FOREIGN KEY (approvedBy) REFERENCES Users(id),
 CONSTRAINT fk_rejectedBy FOREIGN KEY (rejectedBy) REFERENCES Users(id)
 );
 
+ALTER TABLE Games
+ALTER COLUMN downloadLink NVARCHAR(MAX);
 
 SELECT * FROM Games
 DROP TABLE Games
@@ -298,7 +306,7 @@ SELECT * FROM Warnings
 SELECT * FROM Games
 SELECT * FROM Games WHERE developerId = 2
 
-DROP TABLE Warnings
+SELECT * FROM End_Warning_Request
 SELECT COUNT(*) FROM Games WHERE id = 7
 
 
@@ -315,9 +323,9 @@ CONSTRAINT fk_WarningId FOREIGN KEY (warningId) REFERENCES Warnings(id),
 CONSTRAINT fk_reqAcceptedBy FOREIGN KEY (acceptedBy) REFERENCES Users(id),
 CONSTRAINT fk_reqRejectedBy FOREIGN KEY (rejectedBy) REFERENCES Users(id))
 
-SELECT * FROM End_Warning_Request
 
 DROP TABLE End_Warning_Request
+DROP TABLE Warnings
 
 
 SELECT COUNT(*) FROM Warnings WHERE id = 1
@@ -328,15 +336,25 @@ INSERT INTO End_Warning_Request (warningId,requestNote) VALUES (1,'dummy note')
 INSERT INTO End_Warning_Request 
         (warningId, requestNote) VALUES (1,'')
 
-
 UPDATE Games SET hasWarning = 0
 
-SELECT * FROM Games
+UPDATE End_Warning_Request SET isAccepted = 1, acceptedBy = 1, is Active = 0 
+            WHERE warningId = 1
 
+SELECT * FROM Games
+UPDATE Warnings SET endedBy = 1, endedAt = GETDATE()
 SELECT * FROM Warnings
+UPDATE Games SET hasWarning = 0
 
 SELECT * FROM End_Warning_Request
+
+UPDATE End_Warning_Request SET isAccepted = 1, acceptedBy = 1, isActive = 0 
+            WHERE warningId = 1
 
 SELECT reason FROM Warnings WHERE gameId = 7
 
 SELECT COUNT(*) FROM Sale_Records WHERE buyerId = 3 AND gameId = 1
+
+UPDATE Games SET imageLink = 'https://devimages-cdn.apple.com/wwdc-services/articles/images/3D5F5DD3-14F7-4384-94C0-798D15EE7CD7/2048.jpeg'
+
+

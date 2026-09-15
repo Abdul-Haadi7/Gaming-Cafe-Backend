@@ -52,16 +52,27 @@ public class AdminController : ControllerBase
     }
     [HttpPut("approveGame")]
     [Authorize(Policy = "CanApproveGame")]
-    [Authorize(Policy = "CanRejectGame")]
-    public IActionResult approveOrRejectGame(int gameId, bool approve)
+    public IActionResult approveGame(int gameId)
     {
         string? id = this.User.FindFirst("id")?.Value;
         int userId = int.Parse(id);
-        if (this.opHelper.approveGame(userId, gameId,approve))
+        if (this.opHelper.approveGame(userId, gameId))
         {
             return new OkObjectResult(new { message = "Game approved!" });
         }
         return BadRequest (new {message = "Failed to approve game!"});
+    }
+    [HttpPut("rejectGame")]
+    [Authorize(Policy = "CanRejectGame")]
+    public IActionResult rejectGame(int gameId, string reason)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        if (this.opHelper.rejectGame(userId, gameId, reason))
+        {
+            return new OkObjectResult(new { message = "Game rejected!" });
+        }
+        return BadRequest (new {message = "Failed to reject game!"});
     }
     [HttpGet("getActiveReqCount")]
     public int getActiveRequestsCount()
@@ -97,5 +108,59 @@ public class AdminController : ControllerBase
             return new OkObjectResult(new { message = "Warning sent!" });
         }
         return BadRequest (new {message = "Failed to send warning!"});
+    }
+    [HttpGet("getAllActiveWarnings")]
+    [Authorize(Policy = "CanViewAllWarnings")]
+    public IActionResult getAllWarnings()
+    {
+        IEnumerable<ReturnWarningsDTO> list = this.opHelper.returnAllWarnings();
+        if (list != null)
+        {
+            return Ok(list);
+        }
+        return BadRequest (new {message = "Failed to get warnings!"});
+    }
+    [HttpGet("getActiveWarningsCount")]
+    [Authorize(Policy = "CanViewAllWarnings")]
+    public int getActiveWarningsCount()
+    {
+        return this.opHelper.getAllWarningsCount();
+    }
+    [HttpPut("endWarning")]
+    [Authorize(Policy = "CanEndWarning")]
+    public IActionResult endWarning(ReturnWarningsDTO warning)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        bool done = this.opHelper.endWarning(warning,userId);
+        if (done)
+        {
+            return new OkObjectResult(new { message = "Warning ended!" });
+        }
+        return BadRequest (new {message = "Failed to end warning!"});
+    }
+    [HttpGet("getAllWarningEndReq")]
+    [Authorize(Policy = "CanViewAllEndWarningReq")]
+    public IActionResult getAllWarningEndReqs()
+    {
+        IEnumerable<ReturnWarningEndReqToAdmin> list = this.opHelper.getAllWarningEndReq();
+        if (list != null)
+        {
+            return Ok(list);
+        }
+        return BadRequest (new {message = "Failed to get warnings!"});
+    }
+    [HttpGet("countEndWarningReq")]
+    [Authorize(Policy = "CanViewAllEndWarningReq")]
+    public int countEndWarningReq()
+    {
+        return this.opHelper.countEndWarningReq();
+    }
+    [HttpPut("approveEndWarningReq")]
+    [Authorize(Policy = "CanEndWarning")]
+    public IActionResult approveEndWarningReq(int warningId)
+    {
+        ReturnWarningsDTO warning = this.opHelper.getWarningById(warningId);
+        return this.endWarning(warning);    
     }
 }
