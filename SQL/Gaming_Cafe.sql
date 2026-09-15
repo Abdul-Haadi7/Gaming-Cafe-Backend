@@ -72,6 +72,7 @@ INSERT INTO Permissions (name) VALUES ('CanViewHisWarnings')
 INSERT INTO Permissions (name) VALUES ('CanRequestToEndWarning')
 INSERT INTO Permissions (name) VALUES ('CanViewAllWarnings')
 INSERT INTO Permissions (name) VALUES ('CanViewAllEndWarningReq')
+INSERT INTO Permissions (name) VALUES ('CanViewHisEndWarningReqs')
 SELECT * FROM Permissions
 
 -- Out of all the permissions, each role can perform specific permissions of that role only
@@ -121,6 +122,7 @@ INSERT INTO RolePermissions VALUES (4,13)
 INSERT INTO RolePermissions VALUES (4,17)
 INSERT INTO RolePermissions VALUES (4,21)
 INSERT INTO RolePermissions VALUES (4,22)
+INSERT INTO RolePermissions VALUES (4,25)
 
 SELECT * FROM Permissions
 
@@ -135,7 +137,7 @@ CONSTRAINT fk_permissionId_userPermissions FOREIGN KEY (permissionId) REFERENCES
 DROP TABLE UserPermissions
 SELECT * FROM UserPermissions
 
-INSERT INTO UserPermissions VALUES (1004,24)
+INSERT INTO UserPermissions VALUES (2,25)
 
 SELECT * FROM UserPermissions
 
@@ -170,6 +172,7 @@ hasWarning BIT DEFAULT 0,
 isPublic BIT DEFAULT 1,
 isRejected BIT NOT NULL DEFAULT 0,
 isApproved BIT NOT NULL DEFAULT 0,
+requestResultViewed BIT NOT NULL DEFAULT 0,
 CONSTRAINT fk_developerId FOREIGN KEY (developerId) REFERENCES Users(id) 
 ON UPDATE CASCADE ON DELETE SET NULL,
 
@@ -177,6 +180,7 @@ CONSTRAINT fk_approvedBy FOREIGN KEY (approvedBy) REFERENCES Users(id),
 
 CONSTRAINT fk_rejectedBy FOREIGN KEY (rejectedBy) REFERENCES Users(id)
 );
+
 
 ALTER TABLE Games
 ALTER COLUMN downloadLink NVARCHAR(MAX);
@@ -302,27 +306,27 @@ REFERENCES Users (Id),
 CONSTRAINT FK_Warning_ender FOREIGN KEY (endedBy) 
 REFERENCES Users (Id))
 
-SELECT * FROM Warnings
-SELECT * FROM Games
-SELECT * FROM Games WHERE developerId = 2
-
-SELECT * FROM End_Warning_Request
-SELECT COUNT(*) FROM Games WHERE id = 7
-
 
 CREATE TABLE End_Warning_Request (id INT PRIMARY KEY IDENTITY (1,1) NOT NULL,
-warningId INT NOT NULL UNIQUE,
+warningId INT NOT NULL,
 requestNote NVARCHAR(MAX),
 isAccepted BIT DEFAULT 0,
 isRejected BIT DEFAULT 0,
 acceptedBy INT DEFAULT NULL,
 rejectedBy INT DEFAULT NULL,
 isActive BIT DEFAULT 1,
+doNotShowAgain BIT DEFAULT 0 NOT NULL,
 
 CONSTRAINT fk_WarningId FOREIGN KEY (warningId) REFERENCES Warnings(id),
 CONSTRAINT fk_reqAcceptedBy FOREIGN KEY (acceptedBy) REFERENCES Users(id),
 CONSTRAINT fk_reqRejectedBy FOREIGN KEY (rejectedBy) REFERENCES Users(id))
 
+
+SELECT * FROM Warnings
+SELECT * FROM Games
+SELECT * FROM Games WHERE developerId = 2
+SELECT * FROM End_Warning_Request
+SELECT COUNT(*) FROM Games WHERE id = 7
 
 DROP TABLE End_Warning_Request
 DROP TABLE Warnings
@@ -341,12 +345,14 @@ UPDATE Games SET hasWarning = 0
 UPDATE End_Warning_Request SET isAccepted = 1, acceptedBy = 1, is Active = 0 
             WHERE warningId = 1
 
-SELECT * FROM Games
+SELECT * FROM Games WHERE developerId = 1005
 UPDATE Warnings SET endedBy = 1, endedAt = GETDATE()
 SELECT * FROM Warnings
 UPDATE Games SET hasWarning = 0
 
 SELECT * FROM End_Warning_Request
+UPDATE End_Warning_Request SET doNotShowAgain = 0
+
 
 UPDATE End_Warning_Request SET isAccepted = 1, acceptedBy = 1, isActive = 0 
             WHERE warningId = 1
@@ -358,3 +364,27 @@ SELECT COUNT(*) FROM Sale_Records WHERE buyerId = 3 AND gameId = 1
 UPDATE Games SET imageLink = 'https://devimages-cdn.apple.com/wwdc-services/articles/images/3D5F5DD3-14F7-4384-94C0-798D15EE7CD7/2048.jpeg'
 
 
+SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
+        discountPercentage FROM Games WHERE isActive = 1 AND isApproved = 1 AND isPublic = 1
+
+
+SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
+        discountPercentage,hasWarning,isActive,isPublic FROM Games WHERE developerId = 1005 
+        AND isActive = 0 
+
+UPDATE Games SET requestResultViewed = 1 WHERE id = 1
+
+
+SELECT 
+            e.id,e.warningId,e.requestNote,e.isAccepted,e.isRejected,w.gameId,w.reason,
+            g.name AS gameName,
+            u.name AS developerName
+        FROM End_Warning_Request e
+        INNER JOIN Warnings w 
+            ON e.warningId = w.id
+        INNER JOIN Games g 
+            ON w.gameId = g.id
+        INNER JOIN Users u
+            ON g.developerId = u.id
+        WHERE e.doNotShowAgain = 0
+        AND g.developerId = 2

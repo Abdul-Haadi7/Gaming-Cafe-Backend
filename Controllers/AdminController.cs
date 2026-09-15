@@ -143,7 +143,7 @@ public class AdminController : ControllerBase
     [Authorize(Policy = "CanViewAllEndWarningReq")]
     public IActionResult getAllWarningEndReqs()
     {
-        IEnumerable<ReturnWarningEndReqToAdmin> list = this.opHelper.getAllWarningEndReq();
+        IEnumerable<ReturnWarningEndReqDTO> list = this.opHelper.getAllWarningEndReqForAdmin();
         if (list != null)
         {
             return Ok(list);
@@ -163,4 +163,17 @@ public class AdminController : ControllerBase
         ReturnWarningsDTO warning = this.opHelper.getWarningById(warningId);
         return this.endWarning(warning);    
     }
+    [HttpPut("rejectEndWarningReq")]
+    [Authorize(Policy = "CanEndWarning")]
+    public IActionResult rejectEndWarningReq(int warningId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        ReturnWarningsDTO warning = this.opHelper.getWarningById(warningId);
+        if(this.opHelper.rejectWarningEndReq(warning, userId)){
+            return new OkObjectResult(new { message = "Request rejected!" });
+        }
+        return BadRequest (new {message = "Failed to reject request!"});
+    }
+
 }

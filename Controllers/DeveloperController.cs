@@ -216,12 +216,24 @@ public class DeveloperController : ControllerBase
     {
         string? id = this.User.FindFirst("id")?.Value;
         int userId = int.Parse(id);
-        IEnumerable<ReturnGamesToDevDTO> list = this.opHelper.viewPendingGameRequests(userId);
+        IEnumerable<ReturnPendingUploadReqToDev> list = this.opHelper.viewPendingGameRequests(userId);
         if(list == null)
         {
             return BadRequest (new {message = "No requests found!"});
         }
         return Ok(list);
+    }
+    [HttpPut("doNotShowUploadReq")]
+    public bool markUploadReqAsDontShow(int gameId)
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        return this.opHelper.dontShowUploadReq(gameId,userId);
+    }
+    [HttpPut("doNotShowWarningEndReq")]
+    public bool markWarningEndReqAsDontShow(int reqId)
+    {
+        return this.opHelper.dontShowWarningEndReq(reqId);
     }
     [Authorize (Policy = "CanViewHisWarnings")]
     [HttpGet("viewReceivedWarnings")]
@@ -263,5 +275,18 @@ public class DeveloperController : ControllerBase
             return Ok(new{message = "Request sent!"});
         }
         return BadRequest (new {message = "Failed to send request!"});
+    }
+    [HttpGet("getEndWarningReqs")]
+    [Authorize(Policy = "CanViewHisEndWarningReqs")]
+    public IActionResult getEndWarningReqs()
+    {
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+        IEnumerable<ReturnWarningEndReqDTO> list = this.opHelper.getWarningEndReqOfDev(userId);
+        if(list!=null)
+        {
+            return Ok(list);
+        }
+        return BadRequest (new {message = "Failed to get requests!"});
     }
 }
