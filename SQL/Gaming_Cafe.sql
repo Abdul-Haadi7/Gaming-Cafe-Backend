@@ -1,5 +1,6 @@
 USE Gaming_Cafe
 
+
 DROP DATABASE Gaming_Cafe
 CREATE DATABASE Gaming_Cafe
 
@@ -8,10 +9,13 @@ name NVARCHAR(100) NOT NULL,
 email NVARCHAR(100) NOT NULL UNIQUE,
 phone VARCHAR(50) NOT NULL,
 isActive BIT NOT NULL DEFAULT 1);
-
+UPDATE Users SET isActive = 1
 
 DROP TABLE Users
-
+SELECT r.name
+            FROM Roles r
+            JOIN UserRoles ur ON ur.roleId = r.id
+            WHERE ur.userId = 3
 DROP TABLE Users
 SELECT * FROM Users
 
@@ -54,7 +58,6 @@ name VARCHAR(100))
 DROP TABLE Permissions
 
 
-
 -- Insert all permissions of the system
 INSERT INTO Permissions (name) VALUES('CanAddAdmin')
 INSERT INTO Permissions (name) VALUES ('CanViewAllGames'),('CanUploadGames')
@@ -75,7 +78,18 @@ INSERT INTO Permissions (name) VALUES ('CanRequestToEndWarning')
 INSERT INTO Permissions (name) VALUES ('CanViewAllWarnings')
 INSERT INTO Permissions (name) VALUES ('CanViewAllEndWarningReq')
 INSERT INTO Permissions (name) VALUES ('CanViewHisEndWarningReqs')
+INSERT INTO Permissions (name) VALUES ('CanDeleteAnyGame')
+INSERT INTO Permissions (name) VALUES ('CanBlockCustomers')
+INSERT INTO Permissions (name) VALUES ('CanBlockDevelopers')
+INSERT INTO Permissions (name) VALUES ('CanBlockAdmins')
+
+INSERT INTO Permissions (name) VALUES ('CanUnblockCustomers')
+INSERT INTO Permissions (name) VALUES ('CanUnblockDevelopers')
+INSERT INTO Permissions (name) VALUES ('CanUnblockAdmins')
 SELECT * FROM Permissions
+
+
+
 
 -- Out of all the permissions, each role can perform specific permissions of that role only
 CREATE TABLE RolePermissions (roleId INT,
@@ -87,6 +101,7 @@ DROP TABLE RolePermissions
 
 --Insert the role permissions of Super Admin role
 INSERT INTO RolePermissions VALUES (1,1)
+INSERT INTO RolePermissions VALUES (1,2)
 INSERT INTO RolePermissions VALUES (1,9)
 INSERT INTO RolePermissions VALUES (1,10)
 INSERT INTO RolePermissions VALUES (1,11)
@@ -95,7 +110,14 @@ INSERT INTO RolePermissions VALUES (1,18)
 INSERT INTO RolePermissions VALUES (1,19)
 INSERT INTO RolePermissions VALUES (1,23)
 INSERT INTO RolePermissions VALUES (1,24)
+INSERT INTO RolePermissions VALUES (1,26)
+INSERT INTO RolePermissions VALUES (1,27)
+INSERT INTO RolePermissions VALUES (1,28)
+INSERT INTO RolePermissions VALUES (1,29)
 
+INSERT INTO RolePermissions VALUES (1,30)
+INSERT INTO RolePermissions VALUES (1,31)
+INSERT INTO RolePermissions VALUES (1,32)
 --Insert the role permissions of Admin role
 INSERT INTO RolePermissions VALUES (2,9)
 INSERT INTO RolePermissions VALUES (2,10)
@@ -128,6 +150,9 @@ INSERT INTO RolePermissions VALUES (4,25)
 
 SELECT * FROM Permissions
 
+SELECT permissionId FROM RolePermissions WHERE roleId = 2
+SELECT permissionId FROM RolePermissions WHERE roleId = 1
+
 SELECT * FROM RolePermissions
 TRUNCATE TABLE RolePermissions
 
@@ -139,9 +164,24 @@ CONSTRAINT fk_permissionId_userPermissions FOREIGN KEY (permissionId) REFERENCES
 DROP TABLE UserPermissions
 SELECT * FROM UserPermissions
 
-INSERT INTO UserPermissions VALUES (2,25)
+INSERT INTO UserPermissions VALUES (1,23)
+INSERT INTO UserPermissions VALUES (1,24)
+INSERT INTO UserPermissions VALUES (1,20)
+INSERT INTO UserPermissions VALUES (1,18)
+INSERT INTO UserPermissions VALUES (1,19)
+INSERT INTO UserPermissions VALUES (1,26)
+INSERT INTO UserPermissions VALUES (1,27)
+INSERT INTO UserPermissions VALUES (1,28)
+INSERT INTO UserPermissions VALUES (1,29)
 
-SELECT * FROM UserPermissions
+INSERT INTO UserPermissions VALUES (1,30)
+INSERT INTO UserPermissions VALUES (1,31)
+INSERT INTO UserPermissions VALUES (1,32)
+
+
+SELECT * FROM UserPermissions WHERE userId = 1
+
+SELECT * FROM UserPermissions 
 
 SELECT * FROM Users
 SELECT * FROM Auth

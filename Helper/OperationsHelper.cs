@@ -151,7 +151,7 @@ public class OperationsHelper
     {
         string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
         discountPercentage,hasWarning,isActive,isPublic FROM Games WHERE developerId = @devId 
-        AND isApproved = 1";
+        AND isApproved = 1 AND isActive = 1";
         List<SqlParameter> parameters = new List<SqlParameter>
         {
             new SqlParameter("@devId", devId),
@@ -1134,7 +1134,7 @@ public class OperationsHelper
     }
     public IEnumerable<ReturnDeveloperToAdminDTO> getAllDevs()
     {
-        string sql = @"SELECT u.name, u.email, u.phone,
+        string sql = @"SELECT u.id,u.name, u.email, u.phone,
         COUNT(g.id) AS totalActiveGames, u.isActive
             FROM Users u LEFT JOIN Games g 
             ON g.developerId = u.id
@@ -1143,6 +1143,7 @@ public class OperationsHelper
             FROM Roles r 
             WHERE r.name = @role))
             GROUP BY 
+            u.id,
             u.name,
             u.email,
             u.phone,
@@ -1158,7 +1159,7 @@ public class OperationsHelper
 
    public IEnumerable<ReturnCustomerToAdminDTO> getAllCust()
     {
-        string sql = @"SELECT u.name, u.email, u.phone, 
+        string sql = @"SELECT u.id,u.name, u.email, u.phone, 
         COUNT(s.buyerId) AS totalGamesBought, u.isActive
             FROM Users u LEFT JOIN Sale_Records s 
             ON s.buyerId = u.id
@@ -1167,6 +1168,7 @@ public class OperationsHelper
             FROM Roles r 
             WHERE r.name = @role))
             GROUP BY 
+            u.id,
             u.name,
             u.email,
             u.phone,
@@ -1178,5 +1180,32 @@ public class OperationsHelper
         IEnumerable<ReturnCustomerToAdminDTO> list = 
         this._dapper.loadObject_WithParameters<ReturnCustomerToAdminDTO>(sql,parameters);
         return list;
+    }
+    public IActionResult blockOrUnblockUser(int userId,bool status)
+    {
+        string sql = @"UPDATE Users SET isActive = @status WHERE id = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id",userId),
+            new SqlParameter("@status",status)
+        };
+        if (this._dapper.ExecuteSQL_WithParameters(sql, parameters))
+        {
+            return new OkObjectResult(new { message = "Action completed!" });
+        }
+        return BadRequest (new {message = "Failed to complete!"});
+    }
+    public bool userRoleIsCorrect(int userId, string role)
+    {
+        string sql = @"SELECT r.name
+            FROM Roles r
+            JOIN UserRoles ur ON ur.roleId = r.id
+            WHERE ur.userId = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id",userId)
+        };
+        string? realRole = this._dapper.returnSingle_WithParameters<string>(sql,parameters);
+        return role == realRole;
     }
 }

@@ -11,7 +11,7 @@ using Microsoft.Data.SqlClient;
 namespace GAME_CAFE.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin, Super Admin")]
 public class AdminController : ControllerBase
 {
     private readonly DataContextDapper _dapper;
