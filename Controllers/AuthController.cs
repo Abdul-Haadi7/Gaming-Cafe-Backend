@@ -173,6 +173,11 @@ public class AuthController : ControllerBase
                 return Unauthorized(new { message = "Invalid username or password" });
             }
         }
+        //Check if user is blocked
+        if (!this.helper.isActive(userId))
+        {
+            return StatusCode(403, new { message = "Your account is currently blocked!" });
+        }
         //Get role of user
         string? role = this.helper.getRole(userId);
         if(role == null || role == default)

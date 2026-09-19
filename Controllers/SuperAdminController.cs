@@ -28,79 +28,89 @@ public class SuperAdminController : ControllerBase
         this.opHelper = new OperationsHelper(con);
     }
 
-    // [Authorize (Policy = "CanAddAdmin")]
-    // [HttpPost("addAdmin")]
-    // public IActionResult addAdmin(CreateAdminDTO admin)
-    // {
-    //     try
-    //     {
-    //         string email = admin.Email;
-    //         if (this.helper.emailExists(email))
-    //         {
-    //             return BadRequest(new { message = "Account for this email already exists!" });
-    //         }
-    //         //Make sure the role is Admin
-    //         admin.role = "Admin";
-    //         byte[] passwordSalt = new byte[128 / 8];
-    //         using (RandomNumberGenerator ran = RandomNumberGenerator.Create())
-    //         {
-    //             ran.GetNonZeroBytes(passwordSalt);
-    //         }
+    [Authorize (Policy = "CanAddAdmin")]
+    [HttpPost("addAdmin")]
+    public IActionResult addAdmin(CreateAdminDTO admin)
+    {
+      
+        try
+        {
+            string email = admin.email;
+            if (this.helper.emailExists(email))
+            {
+                return BadRequest(new { message = "Account for this email already exists!" });
+            }
+            //Make sure the role is Admin
+            admin.role = "Admin";
+            byte[] passwordSalt = new byte[128 / 8];
+            using (RandomNumberGenerator ran = RandomNumberGenerator.Create())
+            {
+                ran.GetNonZeroBytes(passwordSalt);
+            }
 
-    //         byte[] passwordHash = this.helper.getPasswordHash(admin.password, passwordSalt);
+            byte[] passwordHash = this.helper.getPasswordHash(admin.password, passwordSalt);
 
-    //         string sqlToAddAdmin = @"INSERT INTO Users (name, email, phone) VALUES (@name,@email,@phone)";
-    //         List<SqlParameter> userPar = new List<SqlParameter>
-    //         {
-    //             new SqlParameter("@name", admin.Name),
-    //             new SqlParameter("@email", admin.Email),
-    //             new SqlParameter("@phone", admin.Phone),
-    //         };
-    //         //Insert admin in Users table
-    //         if (this._dapper.ExecuteSQL_WithParameters(sqlToAddAdmin, userPar))
-    //         {
-    //             //Get the id of the this admin to add in Auth
-    //             int userId = this.helper.getId(admin.Email);
+            string sqlToAddAdmin = @"INSERT INTO Users (name, email, phone) VALUES (@name,@email,@phone)";
+            List<SqlParameter> userPar = new List<SqlParameter>
+            {
+                new SqlParameter("@name", admin.name),
+                new SqlParameter("@email", admin.email),
+                new SqlParameter("@phone", admin.phone),
+            };
+            //Insert admin in Users table
+            if (this._dapper.ExecuteSQL_WithParameters(sqlToAddAdmin, userPar))
+            {
+                //Get the id of the this admin to add in Auth
+                int userId = this.helper.getId(admin.email);
 
-    //             int roleId=2;
+                int roleId=2;
              
-    //             //Query to add in UserRoles table
-    //             string sql_addInUserRoles = @"INSERT INTO UserRoles VALUES (@userId,@roleId)";
-    //             List<SqlParameter> rolesParam = new List<SqlParameter>
-    //             {
-    //                 new SqlParameter("@userId", userId),
-    //                 new SqlParameter("@roleId", roleId),
-    //             };
+                //Query to add in UserRoles table
+                string sql_addInUserRoles = @"INSERT INTO UserRoles VALUES (@userId,@roleId)";
+                List<SqlParameter> rolesParam = new List<SqlParameter>
+                {
+                    new SqlParameter("@userId", userId),
+                    new SqlParameter("@roleId", roleId),
+                };
 
-    //             if (this._dapper.ExecuteSQL_WithParameters(sql_addInUserRoles, rolesParam))
-    //             {
-                        
-    //             }
-    //             //Query to add in auth
-    //             string SQL_AddAuth = @"INSERT INTO Auth (userId,PasswordSalt,PasswordHash) VALUES (@userId, @passwordSalt, @passwordHash)";
+                this._dapper.ExecuteSQL_WithParameters(sql_addInUserRoles, rolesParam);
+                
+                //Query to add in auth
+                string SQL_AddAuth = @"INSERT INTO Auth (userId,PasswordSalt,PasswordHash) VALUES (@userId, @passwordSalt, @passwordHash)";
             
-    //             List<SqlParameter> authPar = new List<SqlParameter>
-    //             {
-    //                 new SqlParameter("@userId", userId),
-    //                 new SqlParameter("@passwordSalt", SqlDbType.VarBinary) { Value = passwordSalt },
-    //                 new SqlParameter("@passwordHash", SqlDbType.VarBinary) { Value = passwordHash }
-    //             };
-    //             //Insert auth info in Auth table
-    //             if (this._dapper.ExecuteSQL_WithParameters(SQL_AddAuth, authPar))
-    //             {
-    //                 //Insert permissions of the admin
-    //                 this.helper.insertAdminPermissions(userId,admin.permissions);
-    //                 return Ok("Admin added!");
-    //             }
-    //             return StatusCode(500, new { message = "Failed to create account!" });
-    //         }
-    //         return Ok();
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         return StatusCode(500, new { message = ex.Message });
-    //     }
-    // }
+                List<SqlParameter> authPar = new List<SqlParameter>
+                {
+                    new SqlParameter("@userId", userId),
+                    new SqlParameter("@passwordSalt", SqlDbType.VarBinary) { Value = passwordSalt },
+                    new SqlParameter("@passwordHash", SqlDbType.VarBinary) { Value = passwordHash }
+                };
+                //Insert auth info in Auth table
+                if (this._dapper.ExecuteSQL_WithParameters(SQL_AddAuth, authPar))
+                {
+                    //Insert permissions of the admin
+                    this.helper.insertAdminPermissions(userId,admin.permissions);
+                    return Ok(new { message = "Admin added!" });
+                }
+                return StatusCode(500, new { message = "Failed to create account!" });
+            }
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
+    [Authorize (Policy = "CanAddAdmin")]
+    [HttpGet("getAdminPermissions")]
+    public IActionResult getAllAdminPermissions()
+    {
+        IEnumerable<Permission> list = this.opHelper.getAdminPerm();
+        if (list != null)
+        {
+            return Ok(list);
+        }
+        return BadRequest (new {message = "Failed to get permissions!"});
+    }
     [HttpGet("getSuperAdminName")]
     public string getName()
     {
@@ -132,7 +142,7 @@ public class SuperAdminController : ControllerBase
     [HttpPut("blockDev")]
     public IActionResult blockDev(int devId)
     {
-        Console.WriteLine("Block dev");
+   
         if(!this.opHelper.userRoleIsCorrect(devId,"Developer")){
             return BadRequest (new {message = "Invalid role!!"});
         }
@@ -161,7 +171,6 @@ public class SuperAdminController : ControllerBase
     [HttpPut("unblockDev")]
     public IActionResult unblockDev(int devId)
     {
-        Console.WriteLine("Block dev");
         if(!this.opHelper.userRoleIsCorrect(devId,"Developer")){
             return BadRequest (new {message = "Invalid role!!"});
         }
@@ -176,4 +185,16 @@ public class SuperAdminController : ControllerBase
         }
         return this.opHelper.blockOrUnblockUser(adminId,true);
     }
+    [HttpGet("getAllAdmins")]
+    [Authorize(Policy = "CanViewAllAdmins")]
+    public IActionResult getAllAdmins()
+    {
+        IEnumerable<ReturnAdminToSuperAdminDTO> list = 
+        this.opHelper.getAllAdmins();
+        if(list!=null){
+            return Ok(list);
+        }
+        return BadRequest (new {message = "Unable to get admins!"});
+    }
+
 }

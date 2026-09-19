@@ -86,6 +86,7 @@ INSERT INTO Permissions (name) VALUES ('CanBlockAdmins')
 INSERT INTO Permissions (name) VALUES ('CanUnblockCustomers')
 INSERT INTO Permissions (name) VALUES ('CanUnblockDevelopers')
 INSERT INTO Permissions (name) VALUES ('CanUnblockAdmins')
+INSERT INTO Permissions (name) VALUES ('CanViewAllAdmins')
 SELECT * FROM Permissions
 
 
@@ -114,10 +115,11 @@ INSERT INTO RolePermissions VALUES (1,26)
 INSERT INTO RolePermissions VALUES (1,27)
 INSERT INTO RolePermissions VALUES (1,28)
 INSERT INTO RolePermissions VALUES (1,29)
-
 INSERT INTO RolePermissions VALUES (1,30)
 INSERT INTO RolePermissions VALUES (1,31)
 INSERT INTO RolePermissions VALUES (1,32)
+INSERT INTO RolePermissions VALUES (1,33)
+
 --Insert the role permissions of Admin role
 INSERT INTO RolePermissions VALUES (2,9)
 INSERT INTO RolePermissions VALUES (2,10)
@@ -164,6 +166,33 @@ CONSTRAINT fk_permissionId_userPermissions FOREIGN KEY (permissionId) REFERENCES
 DROP TABLE UserPermissions
 SELECT * FROM UserPermissions
 
+SELECT * FROM UserPermissions WHERE userId = 1012
+
+
+SELECT
+    u.id,
+    u.name,
+    u.email,
+    u.phone,
+    u.isActive,
+    STRING_AGG(p.name, ',') AS permissions
+FROM Users u
+INNER JOIN UserRoles ur
+    ON u.id = ur.userId
+INNER JOIN Roles r
+    ON ur.roleId = r.id
+LEFT JOIN UserPermissions up
+    ON u.id = up.userId
+LEFT JOIN Permissions p
+    ON up.permissionId = p.id
+WHERE r.name = 'Admin'
+GROUP BY
+    u.id,
+    u.name,
+    u.email,
+    u.phone,
+    u.isActive;
+
 INSERT INTO UserPermissions VALUES (1,23)
 INSERT INTO UserPermissions VALUES (1,24)
 INSERT INTO UserPermissions VALUES (1,20)
@@ -177,7 +206,7 @@ INSERT INTO UserPermissions VALUES (1,29)
 INSERT INTO UserPermissions VALUES (1,30)
 INSERT INTO UserPermissions VALUES (1,31)
 INSERT INTO UserPermissions VALUES (1,32)
-
+INSERT INTO UserPermissions VALUES (1,33)
 
 SELECT * FROM UserPermissions WHERE userId = 1
 
@@ -188,6 +217,11 @@ SELECT * FROM Auth
 SELECT * FROM UserRoles
 SELECT * FROM UserPermissions
 select * from roles
+
+SELECT p.name FROM Permissions p JOIN RolePermissions rp
+        ON rp.permissionId = p.id WHERE rp.roleId IN
+        (SELECT r.id FROM Roles r WHERE r.name = 'Customer')
+
 
 
 TRUNCATE TABLE Auth

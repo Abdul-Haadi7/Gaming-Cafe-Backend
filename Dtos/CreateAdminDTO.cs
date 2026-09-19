@@ -1,9 +1,9 @@
 namespace GAME_CAFE.Dtos;
 public class CreateAdminDTO
 {
-    public string Name{get;set;}
-    public string Email{get;set;}
-    public string Phone{get;set;}
+    public string name{get;set;}
+    public string email{get;set;}
+    public string phone{get;set;}
     public string password{get;set;}
     public string role {get;set;}
 
@@ -11,9 +11,9 @@ public class CreateAdminDTO
     public IEnumerable<int> permissions {get;set;}
     public CreateAdminDTO()
     {
-        this.Name = "";
-        this.Email = "";
-        this.Phone = "";
+        this.name = "";
+        this.email = "";
+        this.phone = "";
         this.role = "";
         this.password = "";
     }

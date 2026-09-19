@@ -31,33 +31,6 @@ public class OperationsHelper
         string? name = this._dapper.returnSingle_WithParameters<string>(sql, parameters);
         return name;
     }
-    // public IActionResult uploadGame(UploadGameDTO game, int developerId)
-    // {
-    //     string sql = @"INSERT INTO Games (name, price, intro, description, genre, downloadLink, imageLink, discountPercentage, developerId) 
-    //                    VALUES (@name, @price, @intro, @description, @genre, @downloadLink, @imageLink, @discountPercentage, @developerId)";
-    //     List<SqlParameter> parameters = new List<SqlParameter>
-    //     {
-    //         new SqlParameter("@name", game.name),
-    //         new SqlParameter("@price", game.price),
-    //         new SqlParameter("@intro", game.intro),
-    //         new SqlParameter("@description", game.description),
-    //         new SqlParameter("@genre", game.genre),
-    //         new SqlParameter("@downloadLink", game.downloadLink),
-    //         new SqlParameter("@imageLink", game.imageLink),
-    //         new SqlParameter("@discountPercentage", game.discountPercentage),
-    //         new SqlParameter("@developerId", developerId)
-    //     };
-
-    //     bool success = this._dapper.ExecuteSQL_WithParameters(sql, parameters);
-    //     if (success)
-    //     {
-    //         return new OkObjectResult(new { message = "Game uploaded successfully!" });
-    //     }
-    //     else
-    //     {
-    //         return new BadRequestObjectResult(new { message = "Failed to upload the game." });
-    //     }
-    // }
     public int uploadGame(UploadGameDTO game, int developerId)
     {
         string sql = @"
@@ -179,9 +152,7 @@ public class OperationsHelper
             totalRating = 0;
             avgRating = 0;
             game.warningReason = this.getWarningReason(game.id,devId);
-            // if (game.hasWarning)
-            // {
-            // }
+          
         }
         return list;
     }
@@ -1207,5 +1178,58 @@ public class OperationsHelper
         };
         string? realRole = this._dapper.returnSingle_WithParameters<string>(sql,parameters);
         return role == realRole;
+    }
+    public IEnumerable<ReturnAdminToSuperAdminDTO> getAllAdmins()
+    {
+        string sql = @"SELECT u.id,u.name,u.email,u.phone,u.isActive,
+        STRING_AGG(p.name, ',') AS permissions
+        FROM Users u
+        INNER JOIN UserRoles ur
+            ON u.id = ur.userId
+        INNER JOIN Roles r
+            ON ur.roleId = r.id
+        LEFT JOIN UserPermissions up
+            ON u.id = up.userId
+        LEFT JOIN Permissions p
+            ON up.permissionId = p.id
+        WHERE r.name = @role
+        GROUP BY
+            u.id,
+            u.name,
+            u.email,
+            u.phone,
+            u.isActive;";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@role","Admin")
+        };
+        IEnumerable<TempAdminDTO> list = 
+        this._dapper.loadObject_WithParameters<TempAdminDTO>(sql,parameters);
+
+        return list.Select(a => new ReturnAdminToSuperAdminDTO
+        {
+            id = a.id,
+            name = a.name,
+            email = a.email,
+            phone = a.phone,
+            isActive = a.isActive,
+
+            permissions = a.permissions?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                ?? Enumerable.Empty<string>()
+        });
+    }
+    public IEnumerable<Permission> getAdminPerm()
+    {
+        string sql = @"SELECT p.id,p.name FROM Permissions p JOIN RolePermissions rp
+        ON rp.permissionId = p.id WHERE rp.roleId IN
+        (SELECT r.id FROM Roles r WHERE r.name = @role)";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@role","Admin")
+        };
+        IEnumerable<Permission> list = 
+        this._dapper.loadObject_WithParameters<Permission>(sql,parameters);
+        return list;
     }
 }

@@ -172,4 +172,13 @@ public class AuthHelper
         IEnumerable<string> allPermissions = this._dapper.loadData_WithParameters<string>(sql_getPerm,paramForPerms);
         return allPermissions;
     }
+    public bool isActive(int userId)
+    {
+        string sql = @"SELECT isActive FROM Users WHERE id = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+          new SqlParameter("@id",userId)  
+        };
+        return this._dapper.returnSingle_WithParameters<bool>(sql,parameters);
+    }
 }
