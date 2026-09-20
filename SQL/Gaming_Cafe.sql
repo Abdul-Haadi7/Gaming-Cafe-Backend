@@ -1,5 +1,30 @@
 USE Gaming_Cafe
 
+SELECT u.id AS Id, u.name AS Name, u.email AS Email, u.phone AS Phone
+                   FROM Users u JOIN UserRoles ur ON ur.userId = u.id
+                   WHERE u.id = 1004 AND ur.roleId = 2
+
+
+
+SELECT u.id,u.name,u.email,u.phone,u.isActive,
+        STRING_AGG(p.id,',',p.name) AS permissions
+        FROM Users u
+        INNER JOIN UserRoles ur
+            ON u.id = ur.userId
+        INNER JOIN Roles r
+            ON ur.roleId = r.id
+        LEFT JOIN UserPermissions up
+            ON u.id = up.userId
+        LEFT JOIN Permissions p
+            ON up.permissionId = p.id
+        WHERE r.name = 'Admin'
+        GROUP BY
+            u.id,
+            u.name,
+            u.email,
+            u.phone,
+            u.isActive
+
 
 DROP DATABASE Gaming_Cafe
 CREATE DATABASE Gaming_Cafe
@@ -87,8 +112,8 @@ INSERT INTO Permissions (name) VALUES ('CanUnblockCustomers')
 INSERT INTO Permissions (name) VALUES ('CanUnblockDevelopers')
 INSERT INTO Permissions (name) VALUES ('CanUnblockAdmins')
 INSERT INTO Permissions (name) VALUES ('CanViewAllAdmins')
+INSERT INTO Permissions (name) VALUES ('CanEditAdmin')
 SELECT * FROM Permissions
-
 
 
 
@@ -119,6 +144,7 @@ INSERT INTO RolePermissions VALUES (1,30)
 INSERT INTO RolePermissions VALUES (1,31)
 INSERT INTO RolePermissions VALUES (1,32)
 INSERT INTO RolePermissions VALUES (1,33)
+INSERT INTO RolePermissions VALUES (1,34)
 
 --Insert the role permissions of Admin role
 INSERT INTO RolePermissions VALUES (2,9)
@@ -166,32 +192,8 @@ CONSTRAINT fk_permissionId_userPermissions FOREIGN KEY (permissionId) REFERENCES
 DROP TABLE UserPermissions
 SELECT * FROM UserPermissions
 
-SELECT * FROM UserPermissions WHERE userId = 1012
+SELECT * FROM UserPermissions WHERE userId = 1004
 
-
-SELECT
-    u.id,
-    u.name,
-    u.email,
-    u.phone,
-    u.isActive,
-    STRING_AGG(p.name, ',') AS permissions
-FROM Users u
-INNER JOIN UserRoles ur
-    ON u.id = ur.userId
-INNER JOIN Roles r
-    ON ur.roleId = r.id
-LEFT JOIN UserPermissions up
-    ON u.id = up.userId
-LEFT JOIN Permissions p
-    ON up.permissionId = p.id
-WHERE r.name = 'Admin'
-GROUP BY
-    u.id,
-    u.name,
-    u.email,
-    u.phone,
-    u.isActive;
 
 INSERT INTO UserPermissions VALUES (1,23)
 INSERT INTO UserPermissions VALUES (1,24)
@@ -202,6 +204,7 @@ INSERT INTO UserPermissions VALUES (1,26)
 INSERT INTO UserPermissions VALUES (1,27)
 INSERT INTO UserPermissions VALUES (1,28)
 INSERT INTO UserPermissions VALUES (1,29)
+INSERT INTO UserPermissions VALUES (1,34)
 
 INSERT INTO UserPermissions VALUES (1,30)
 INSERT INTO UserPermissions VALUES (1,31)

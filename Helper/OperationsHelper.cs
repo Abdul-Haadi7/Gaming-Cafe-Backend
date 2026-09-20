@@ -13,11 +13,13 @@ public class OperationsHelper
 {
     private readonly IConfiguration _config;
     private readonly DataContextDapper _dapper;
+    private readonly AuthHelper authHelper;
 
     public OperationsHelper(IConfiguration con)
     {
         this._config = con;
         this._dapper = new DataContextDapper(this._config);
+        this.authHelper = new AuthHelper(con);
     }
 
     public string getName(int userId)
@@ -1182,23 +1184,23 @@ public class OperationsHelper
     public IEnumerable<ReturnAdminToSuperAdminDTO> getAllAdmins()
     {
         string sql = @"SELECT u.id,u.name,u.email,u.phone,u.isActive,
-        STRING_AGG(p.name, ',') AS permissions
-        FROM Users u
-        INNER JOIN UserRoles ur
-            ON u.id = ur.userId
-        INNER JOIN Roles r
-            ON ur.roleId = r.id
-        LEFT JOIN UserPermissions up
-            ON u.id = up.userId
-        LEFT JOIN Permissions p
-            ON up.permissionId = p.id
-        WHERE r.name = @role
-        GROUP BY
-            u.id,
-            u.name,
-            u.email,
-            u.phone,
-            u.isActive;";
+                STRING_AGG(p.name,',') AS permissions
+                FROM Users u
+                INNER JOIN UserRoles ur
+                    ON u.id = ur.userId
+                INNER JOIN Roles r
+                    ON ur.roleId = r.id
+                LEFT JOIN UserPermissions up
+                    ON u.id = up.userId
+                LEFT JOIN Permissions p
+                    ON up.permissionId = p.id
+                WHERE r.name = 'Admin'
+                GROUP BY
+                    u.id,
+                    u.name,
+                    u.email,
+                    u.phone,
+                    u.isActive";
         List<SqlParameter> parameters = new List<SqlParameter>
         {
             new SqlParameter("@role","Admin")
@@ -1219,6 +1221,51 @@ public class OperationsHelper
                 ?? Enumerable.Empty<string>()
         });
     }
+    public ReturnAdminToSuperAdminDTO getsingleAdmin(int adminId)
+    {
+        string sql = @"SELECT u.id,u.name,u.email,u.phone,u.isActive,
+        STRING_AGG(p.name, ',') AS permissions
+        FROM Users u
+        INNER JOIN UserRoles ur
+            ON u.id = ur.userId
+        INNER JOIN Roles r
+            ON ur.roleId = r.id
+        LEFT JOIN UserPermissions up
+            ON u.id = up.userId
+        LEFT JOIN Permissions p
+            ON up.permissionId = p.id
+        WHERE r.name = 'Admin' 
+        GROUP BY
+            u.id,
+            u.name,
+            u.email,
+            u.phone,
+            u.isActive
+        HAVING
+        u.id = @adminId";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@role","Admin"),
+            new SqlParameter("@adminId",adminId)
+        };
+        TempAdminDTO? admin = 
+        this._dapper.returnSingleObj_WithParameters<TempAdminDTO>(sql,parameters);
+        if(admin == null)
+        {
+            return null;
+        }
+        return new ReturnAdminToSuperAdminDTO
+        {
+            id = admin.id,
+            name = admin.name,
+            email = admin.email,
+            phone = admin.phone,
+            isActive = admin.isActive,
+            permissions = admin.permissions?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                ?? Array.Empty<string>()
+        };
+    }
     public IEnumerable<Permission> getAdminPerm()
     {
         string sql = @"SELECT p.id,p.name FROM Permissions p JOIN RolePermissions rp
@@ -1231,5 +1278,39 @@ public class OperationsHelper
         IEnumerable<Permission> list = 
         this._dapper.loadObject_WithParameters<Permission>(sql,parameters);
         return list;
+    }
+    public bool editAdminBasicData(EditAdminDTO editedAdmin)
+    {
+        string sql = @"UPDATE Users SET name = @name, email = @email, phone = @phone
+        WHERE id = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@name",editedAdmin.name),
+            new SqlParameter("@email",editedAdmin.email),
+            new SqlParameter("@phone",editedAdmin.phone),
+            new SqlParameter("@id",editedAdmin.id)
+        };
+        if (this._dapper.ExecuteSQL_WithParameters(sql, parameters))
+        {
+            if(editedAdmin.permissions != null)
+            {
+                return this.editAdminPermissions(editedAdmin);
+            }
+        }
+        return false;
+    }
+    public bool editAdminPermissions(EditAdminDTO edited)
+    {
+        string sql = @"DELETE FROM UserPermissions WHERE userId = @id";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@id",edited.id)
+        };
+        if (this._dapper.ExecuteSQL_WithParameters(sql, parameters))
+        {
+            this.authHelper.insertAdminPermissions(edited.id,edited.permissions);
+            return true;
+        }
+        return false;
     }
 }

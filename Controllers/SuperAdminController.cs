@@ -19,6 +19,7 @@ public class SuperAdminController : ControllerBase
     private IConfiguration _config;
     private AuthHelper helper;
     private readonly OperationsHelper opHelper;
+    private readonly AuthHelper authHelper;
 
     public SuperAdminController(IConfiguration con)
     {
@@ -26,6 +27,7 @@ public class SuperAdminController : ControllerBase
         this._dapper = new DataContextDapper(this._config);
         this.helper = new AuthHelper(con);
         this.opHelper = new OperationsHelper(con);
+        this.authHelper = new AuthHelper(con);
     }
 
     [Authorize (Policy = "CanAddAdmin")]
@@ -110,6 +112,16 @@ public class SuperAdminController : ControllerBase
             return Ok(list);
         }
         return BadRequest (new {message = "Failed to get permissions!"});
+    }
+    [Authorize (Policy = "CanEditAdmin")]
+    [HttpPut("editAdmin")]
+    public IActionResult editAdmin(EditAdminDTO editedAdmin)
+    {
+        if (this.opHelper.editAdminBasicData(editedAdmin))
+        {
+            return Ok(new {message = "Edited successfully!"});
+        }
+        return BadRequest (new {message = "Unable to edit!"});
     }
     [HttpGet("getSuperAdminName")]
     public string getName()
@@ -196,5 +208,15 @@ public class SuperAdminController : ControllerBase
         }
         return BadRequest (new {message = "Unable to get admins!"});
     }
-
+    [HttpGet("getSingleAdmin")]
+    [Authorize(Policy = "CanViewAllAdmins")]
+    public IActionResult getsingleAdmin(int adminId)
+    {
+        ReturnAdminToSuperAdminDTO admin = 
+        this.opHelper.getsingleAdmin(adminId);
+        if(admin!=null){
+            return Ok(admin);
+        }
+        return BadRequest (new {message = "Unable to get admin!"});
+    }
 }
