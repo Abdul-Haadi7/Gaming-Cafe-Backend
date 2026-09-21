@@ -122,7 +122,6 @@ public class CustomerController : ControllerBase
     [Authorize(Policy = "CanRateGames")]
     public IActionResult rateGame(decimal gameRating,int gameId)
     {
-        Console.WriteLine(gameRating);
         if (!this.opHelper.gameExists(gameId))
         {
             return NotFound(new { message = "Game not found!" });

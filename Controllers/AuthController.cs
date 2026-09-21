@@ -194,4 +194,61 @@ public class AuthController : ControllerBase
             token = token
         });
     }
+    [HttpPut("changePassword")]
+    [Authorize]
+    public IActionResult changePass(string currentPass, string newPass, string confrimNewPass)
+    {
+        if(newPass != confrimNewPass)
+        {
+            return BadRequest (new{message="New password and confirm password do not match!"});
+        }
+        string? id = this.User.FindFirst("id")?.Value;
+        int userId = int.Parse(id);
+
+        string sql = @"SELECT passwordSalt FROM Auth WHERE userId = @id";
+        List<SqlParameter> param = new List<SqlParameter>
+        {
+          new SqlParameter("@id",userId)  
+        };
+        byte[]? salt = this._dapper.returnSingle_WithParameters<byte[]>(sql,param);
+        if(salt == null)
+        {
+            return BadRequest (new{message="Unable to change password!"});
+        }
+        byte[] generatedHash = this.helper.getPasswordHash(currentPass, salt);
+
+        sql = @"SELECT passwordHash FROM Auth WHERE userId = @id";
+        List<SqlParameter> param2 = new List<SqlParameter>
+        {
+          new SqlParameter("@id",userId)  
+        };
+        byte[]? originalHash = this._dapper.returnSingle_WithParameters<byte[]>(sql,param2);
+        
+
+        if(generatedHash.Length != originalHash.Length || originalHash == null || originalHash == default)
+        {
+            return BadRequest (new{message="Current password is not correct!"});
+        }
+
+        for(int i=0; i<generatedHash.Length; i++)
+        {
+            if(generatedHash[i] != originalHash[i])
+            {
+                return BadRequest(new { message = "Current password is not correct!" });
+            }
+        }
+        
+        byte[] hashOfNewPass = this.helper.getPasswordHash(confrimNewPass, salt);
+        sql = @"UPDATE Auth SET passwordHash = @hash WHERE userId = @id"; 
+        List<SqlParameter> param3 = new List<SqlParameter>
+        {
+          new SqlParameter("@hash",hashOfNewPass),
+          new SqlParameter("@id",userId)  
+        };
+        if (this._dapper.ExecuteSQL_WithParameters(sql, param3))
+        {
+            return Ok(new {message = "Password changed"});
+        }
+        return BadRequest(new { message = "Unable to change password!" });
+    }
 }

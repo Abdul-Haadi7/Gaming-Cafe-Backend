@@ -1,5 +1,9 @@
 USE Gaming_Cafe
 
+SELECT passwordHash FROM Auth WHERE userId = 1
+
+SELECT passwordSalt FROM Auth WHERE userId = 1
+
 SELECT u.id AS Id, u.name AS Name, u.email AS Email, u.phone AS Phone
                    FROM Users u JOIN UserRoles ur ON ur.userId = u.id
                    WHERE u.id = 1004 AND ur.roleId = 2
