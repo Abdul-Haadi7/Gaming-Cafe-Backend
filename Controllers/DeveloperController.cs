@@ -43,7 +43,7 @@ public class DeveloperController : ControllerBase
 
     [Authorize(Policy = "CanUploadGames")]
     [HttpPost("uploadGame")]
-    public IActionResult uploadGame(UploadGameDTO game)
+    public async Task<IActionResult> uploadGame([FromForm] UploadGameDTO game, IFormFile image)
     {
         string? userId = this.User.FindFirst("id")?.Value;
 
@@ -53,8 +53,7 @@ public class DeveloperController : ControllerBase
         }
 
         int developerId = int.Parse(userId);
-
-        int gameId = this.opHelper.uploadGame(game, developerId);
+        int gameId = await this.opHelper.uploadGame(game, image, developerId);
 
         if (gameId <= 0)
         {
@@ -161,15 +160,15 @@ public class DeveloperController : ControllerBase
     }
     [Authorize (Policy = "EditOwnGames")]
     [HttpPut("editMyGame")]
-    public IActionResult editMyGame(EditGameDTO editedGame, int gameId)
+    public async Task<IActionResult> editMyGame([FromForm] EditGameDTO editedGame, IFormFile? image)
     {
         string? id = this.User.FindFirst("id")?.Value;
         int userId = int.Parse(id);
-        if (!this.opHelper.gameBelongsToDeveloper(gameId, userId))
+        if (!this.opHelper.gameBelongsToDeveloper(editedGame.id, userId))
         {
             return Unauthorized (new{message = "This game does not belong to you!"});
         }
-        bool edited = this.opHelper.editGame(editedGame, gameId);
+        bool edited = await this.opHelper.editGame(editedGame, image,editedGame.id);
         if (edited)
         {
             return new OkObjectResult(new { message = "Game edited!" });

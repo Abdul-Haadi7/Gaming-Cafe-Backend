@@ -1,35 +1,5 @@
 USE Gaming_Cafe
 
-SELECT passwordHash FROM Auth WHERE userId = 1
-
-SELECT passwordSalt FROM Auth WHERE userId = 1
-
-SELECT u.id AS Id, u.name AS Name, u.email AS Email, u.phone AS Phone
-                   FROM Users u JOIN UserRoles ur ON ur.userId = u.id
-                   WHERE u.id = 1004 AND ur.roleId = 2
-
-
-
-SELECT u.id,u.name,u.email,u.phone,u.isActive,
-        STRING_AGG(p.id,',',p.name) AS permissions
-        FROM Users u
-        INNER JOIN UserRoles ur
-            ON u.id = ur.userId
-        INNER JOIN Roles r
-            ON ur.roleId = r.id
-        LEFT JOIN UserPermissions up
-            ON u.id = up.userId
-        LEFT JOIN Permissions p
-            ON up.permissionId = p.id
-        WHERE r.name = 'Admin'
-        GROUP BY
-            u.id,
-            u.name,
-            u.email,
-            u.phone,
-            u.isActive
-
-
 DROP DATABASE Gaming_Cafe
 CREATE DATABASE Gaming_Cafe
 
@@ -119,7 +89,7 @@ INSERT INTO Permissions (name) VALUES ('CanViewAllAdmins')
 INSERT INTO Permissions (name) VALUES ('CanEditAdmin')
 SELECT * FROM Permissions
 
-
+SELECT name FROM Permissions WHERE id IN (SELECT permissionId from RolePermissions WHERE roleId = 4)
 
 -- Out of all the permissions, each role can perform specific permissions of that role only
 CREATE TABLE RolePermissions (roleId INT,

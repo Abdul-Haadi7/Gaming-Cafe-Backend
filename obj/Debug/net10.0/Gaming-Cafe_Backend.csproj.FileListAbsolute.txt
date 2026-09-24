@@ -147,3 +147,4 @@ C:\My Data\Projects\Game Cafe - Enhanced\Gaming-Cafe_Backend_Dev\obj\Debug\net10
 C:\My Data\Projects\Game Cafe - Enhanced\Gaming-Cafe_Backend_Dev\obj\Debug\net10.0\Gaming-Cafe_Backend.pdb
 C:\My Data\Projects\Game Cafe - Enhanced\Gaming-Cafe_Backend_Dev\obj\Debug\net10.0\Gaming-Cafe_Backend.genruntimeconfig.cache
 C:\My Data\Projects\Game Cafe - Enhanced\Gaming-Cafe_Backend_Dev\obj\Debug\net10.0\ref\Gaming-Cafe_Backend.dll
+C:\My Data\Projects\Game Cafe - Enhanced\Gaming-Cafe_Backend_Dev\bin\Debug\net10.0\Gaming-Cafe_Backend.staticwebassets.runtime.json

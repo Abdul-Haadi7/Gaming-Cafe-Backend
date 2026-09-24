@@ -2,6 +2,7 @@ namespace GAME_CAFE.Dtos;
 
 public class EditGameDTO
 {
+    public int id {get;set;}
     public string name{get;set;}
     public decimal price{get;set;}
     public string intro{get;set;}

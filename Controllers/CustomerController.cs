@@ -57,8 +57,7 @@ public class CustomerController : ControllerBase
         return BadRequest(new{message = "Games not found"});
     }
     [HttpGet("getSingleGame")]
-    [Authorize(Policy = "CanViewAllGames")]
-    [Authorize(Roles = "Customer, Admin, Super Admin")]
+    [Authorize(Roles = "Customer, Developer,Admin, Super Admin")]
     public IActionResult getGameById(int gameId)
     {
         ReturnGamesToCustomerDTO game = this.opHelper.returnSingleGameToCust(gameId);

@@ -33,7 +33,55 @@ public class OperationsHelper
         string? name = this._dapper.returnSingle_WithParameters<string>(sql, parameters);
         return name;
     }
-    public int uploadGame(UploadGameDTO game, int developerId)
+    public async Task<int> uploadGame(UploadGameDTO game, IFormFile image, int developerId)
+    {
+        game.imageLink = await this.uploadGameImage(game.name, image);
+        int gameId = this.uploadGameData(game, developerId);
+        return gameId;
+    }
+    public async Task<string> uploadGameImage(string gameName, IFormFile? image)
+    {
+        if (image == null || image.Length == 0)
+        {
+            return "";
+        }
+
+        var extension = Path.GetExtension(image.FileName).ToLower();
+
+        var allowedExtensions = new[]
+        {
+            ".jpg", ".jpeg", ".png", ".webp"
+        };
+
+        if (!allowedExtensions.Contains(extension))
+        {
+            return "";
+        }
+
+        var name = this.getFileName(gameName);
+        var fileName = name + extension;
+
+        var folderPath = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "wwwroot",
+            "game-images"
+        );
+
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        var filePath = Path.Combine(folderPath, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await image.CopyToAsync(stream);
+        }
+
+        return "/game-images/" + fileName;
+    }
+    public int uploadGameData(UploadGameDTO game,int developerId)
     {
         string sql = @"
             INSERT INTO Games 
@@ -53,11 +101,25 @@ public class OperationsHelper
             new SqlParameter("@imageLink", game.imageLink),
             new SqlParameter("@discountPercentage", game.discountPercentage),
             new SqlParameter("@developerId", developerId)
-        };
-
+        };   
         int gameId = this._dapper.ExecuteScalar_WithParameters(sql, parameters);
-
         return gameId;
+    }
+
+    private string getFileName(string gameName)
+    {
+        foreach (char character in Path.GetInvalidFileNameChars())
+        {
+            gameName = gameName.Replace(
+                character.ToString(),
+                ""
+            );
+        }
+        gameName = gameName.Replace(
+            " ",
+            ""
+        );
+        return gameName;
     }
 
     private IActionResult BadRequest(object value)
@@ -251,8 +313,13 @@ public class OperationsHelper
         ReturnGameReqDTO? req = this._dapper.returnSingleObj_WithParameters<ReturnGameReqDTO>(sql,parameters);
         return req;
     }
-    public bool editGame(EditGameDTO editedGame,int gameId)
+    public async Task<bool> editGame(EditGameDTO editedGame, IFormFile? image,int gameId)
     {
+        if (image != null)
+        {
+            editedGame.imageLink = await this.uploadGameImage(editedGame.name, image);
+        }
+        
         string sql = @"UPDATE Games SET name = @newName, price = @newPrice, genre = @newGenre,
         intro = @newIntro, description = @newDesc, downloadLink = @newDownLink,
         imageLink = @newImgLink, discountPercentage = @newDis WHERE id = @id";
@@ -657,6 +724,7 @@ public class OperationsHelper
         };
         return this._dapper.ExecuteSQL_WithParameters(sql,parameters);
     }
+
     public IEnumerable<ReturnUploadReqToAdminDTO> getAllGameRequests()
     {
         string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink
