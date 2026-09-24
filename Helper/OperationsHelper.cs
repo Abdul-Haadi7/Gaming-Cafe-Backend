@@ -33,6 +33,16 @@ public class OperationsHelper
         string? name = this._dapper.returnSingle_WithParameters<string>(sql, parameters);
         return name;
     }
+    public bool nameIsTaken(string gameName)
+    {
+        string sql = "SELECT COUNT(*) FROM Games WHERE name = @name";
+        List<SqlParameter> parameters = new List<SqlParameter>
+        {
+            new SqlParameter("@name", gameName)
+        };
+
+        return this._dapper.returnSingle_WithParameters<int>(sql,parameters) > 0;
+    }
     public async Task<int> uploadGame(UploadGameDTO game, IFormFile image, IFormFile file,int developerId)
     {
         game.imageLink = await this.uploadGameImage(game.name, image);

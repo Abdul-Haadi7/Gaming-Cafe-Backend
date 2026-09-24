@@ -45,6 +45,10 @@ public class DeveloperController : ControllerBase
     [HttpPost("uploadGame")]
     public async Task<IActionResult> uploadGame([FromForm] UploadGameDTO game, IFormFile image, IFormFile file)
     {
+        if (this.opHelper.nameIsTaken(game.name))
+        {
+            return BadRequest (new {message = "This game name is already taken! Choose another name"});
+        }
         string? userId = this.User.FindFirst("id")?.Value;
 
         if (userId == null)
@@ -162,6 +166,10 @@ public class DeveloperController : ControllerBase
     [HttpPut("editMyGame")]
     public async Task<IActionResult> editMyGame([FromForm] EditGameDTO editedGame, IFormFile? image, IFormFile? file)
     {
+        if (this.opHelper.nameIsTaken(editedGame.name))
+        {
+            return BadRequest (new {message = "This game name is already taken! Choose another name"});
+        }
         string? id = this.User.FindFirst("id")?.Value;
         int userId = int.Parse(id);
         if (!this.opHelper.gameBelongsToDeveloper(editedGame.id, userId))

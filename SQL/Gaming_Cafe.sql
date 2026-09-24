@@ -208,7 +208,7 @@ TRUNCATE TABLE Users
 
 
 CREATE TABLE Games (id INT PRIMARY KEY IDENTITY(1,1),
-name NVARCHAR(100) NOT NULL,
+name NVARCHAR(100) NOT NULL UNIQUE,
 price DECIMAL(10,2) NOT NULL,
 intro NVARCHAR(100) NOT NULL,
 description NVARCHAR(MAX) NOT NULL,
@@ -228,15 +228,9 @@ isApproved BIT NOT NULL DEFAULT 0,
 requestResultViewed BIT NOT NULL DEFAULT 0,
 CONSTRAINT fk_developerId FOREIGN KEY (developerId) REFERENCES Users(id) 
 ON UPDATE CASCADE ON DELETE SET NULL,
-
 CONSTRAINT fk_approvedBy FOREIGN KEY (approvedBy) REFERENCES Users(id),
-
 CONSTRAINT fk_rejectedBy FOREIGN KEY (rejectedBy) REFERENCES Users(id)
 );
-
-
-ALTER TABLE Games
-ALTER COLUMN downloadLink NVARCHAR(MAX);
 
 SELECT * FROM Games
 DROP TABLE Games
@@ -245,8 +239,6 @@ SELECT * FROM Games WHERE developerId = 3
 
 TRUNCATE TABLE Games
 
--- Users can rate evey game, all ratings given to evry game are sotred here and the average rating
---calculated and displayed in the game.
 CREATE TABLE Game_Ratings
 (
     userId INT NOT NULL,
