@@ -33,9 +33,10 @@ public class OperationsHelper
         string? name = this._dapper.returnSingle_WithParameters<string>(sql, parameters);
         return name;
     }
-    public async Task<int> uploadGame(UploadGameDTO game, IFormFile image, int developerId)
+    public async Task<int> uploadGame(UploadGameDTO game, IFormFile image, IFormFile file,int developerId)
     {
         game.imageLink = await this.uploadGameImage(game.name, image);
+        game.downloadLink = await this.uploadGameFile(game.name, file);
         int gameId = this.uploadGameData(game, developerId);
         return gameId;
     }
@@ -81,6 +82,48 @@ public class OperationsHelper
 
         return "/game-images/" + fileName;
     }
+    public async Task<string> uploadGameFile(string gameName, IFormFile gameFile)
+    {
+        if (gameFile == null || gameFile.Length == 0)
+        {
+            return "";
+        }
+
+        string extension = Path.GetExtension(gameFile.FileName).ToLower();
+
+        var allowedExtensions = new[]
+        {
+            ".zip", ".exe"
+        };
+
+        if (!allowedExtensions.Contains(extension))
+        {
+            return "";
+        }
+
+        string name = this.getFileName(gameName);
+        string fileName = name + extension;
+
+        string folderPath = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "wwwroot",
+            "game-files"
+        );
+
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        string filePath = Path.Combine(folderPath, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await gameFile.CopyToAsync(stream);
+        }
+
+        return "/game-files/" + fileName;
+    }
     public int uploadGameData(UploadGameDTO game,int developerId)
     {
         string sql = @"
@@ -120,6 +163,39 @@ public class OperationsHelper
             ""
         );
         return gameName;
+    }
+
+    private string renameGameFile(string fileLink, string newGameName)
+    {
+        if (string.IsNullOrEmpty(fileLink))
+        {
+            return "";
+        }
+
+        string oldFilePath = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "wwwroot",
+            fileLink.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+        );
+
+        if (!File.Exists(oldFilePath))
+        {
+            return "";
+        }
+
+        string extension = Path.GetExtension(oldFilePath);
+        string newFileName = this.getFileName(newGameName) + extension;
+
+        string newFilePath = Path.Combine(
+            Path.GetDirectoryName(oldFilePath)!,
+            newFileName
+        );
+
+        File.Move(oldFilePath, newFilePath, true);
+        string folder = Path.GetDirectoryName(fileLink.TrimStart('/'))!
+            .Replace("\\", "/");
+
+        return "/" + folder + "/" + newFileName;
     }
 
     private IActionResult BadRequest(object value)
@@ -313,11 +389,27 @@ public class OperationsHelper
         ReturnGameReqDTO? req = this._dapper.returnSingleObj_WithParameters<ReturnGameReqDTO>(sql,parameters);
         return req;
     }
-    public async Task<bool> editGame(EditGameDTO editedGame, IFormFile? image,int gameId)
+    public async Task<bool> editGame(EditGameDTO editedGame, IFormFile? image, IFormFile? file,int gameId)
     {
+        string oldLink;
         if (image != null)
         {
+            oldLink = editedGame.imageLink;
+            this.deleteFileorImage(oldLink);
             editedGame.imageLink = await this.uploadGameImage(editedGame.name, image);
+        }
+        if (file != null)
+        {
+            oldLink = editedGame.downloadLink;
+            this.deleteFileorImage(oldLink);
+            editedGame.downloadLink = await this.uploadGameFile(editedGame.name, file);
+        }
+
+        string gameOldName = this.getGameName(editedGame.id);
+        if(gameOldName != editedGame.name)
+        {
+            editedGame.imageLink = this.renameGameFile(editedGame.imageLink, editedGame.name);
+            editedGame.downloadLink = this.renameGameFile(editedGame.downloadLink, editedGame.name);
         }
         
         string sql = @"UPDATE Games SET name = @newName, price = @newPrice, genre = @newGenre,
@@ -336,6 +428,20 @@ public class OperationsHelper
             new SqlParameter("@id", gameId)
         };
         return this._dapper.ExecuteSQL_WithParameters(sql,parameters);
+    }
+    public void deleteFileorImage(string link)
+    {
+        if (string.IsNullOrEmpty(link))
+        {
+            return;
+        }
+        string filePath = Path.Combine(Directory.GetCurrentDirectory(),"wwwroot",link.TrimStart('/')
+        .Replace("/", Path.DirectorySeparatorChar.ToString()));
+
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
     }
     public bool editRequirements(EditRequirementsDTO requirements,int gameId)
     {
