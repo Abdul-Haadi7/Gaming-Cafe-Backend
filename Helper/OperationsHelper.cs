@@ -560,7 +560,7 @@ public class OperationsHelper
             return false;
         }
     }
-    public ReturnGamesToCustomerDTO returnSingleGameToCust(int gameId)
+    public ReturnGamesToCustomerDTO returnSingleGameToCust(int gameId, int userId)
     {
         string sql = @"SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
         discountPercentage FROM Games WHERE id = @gameId";
@@ -581,6 +581,7 @@ public class OperationsHelper
             {
                 new SqlParameter("@gameId", game.id)
             };
+            game.alreadyOwned = this.alreadyOwned(userId, gameId);
             game.developerName = this._dapper.returnSingle_WithParameters<string>(sql,parameters2);
             game.rating = 0;
             numOfRatings = this.getRatingAmount(game.id);

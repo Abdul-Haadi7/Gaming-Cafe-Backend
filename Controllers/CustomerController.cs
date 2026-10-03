@@ -60,8 +60,9 @@ public class CustomerController : ControllerBase
     [Authorize(Roles = "Customer, Developer,Admin, Super Admin")]
     public IActionResult getGameById(int gameId)
     {
-        ReturnGamesToCustomerDTO game = this.opHelper.returnSingleGameToCust(gameId);
-        
+        string? userId = this.User.FindFirst("id")?.Value;
+        int id = int.Parse(userId);
+        ReturnGamesToCustomerDTO game = this.opHelper.returnSingleGameToCust(gameId, id);
         if (game != null)
         {
             return Ok(game);

@@ -8,15 +8,6 @@ name NVARCHAR(100) NOT NULL,
 email NVARCHAR(100) NOT NULL UNIQUE,
 phone VARCHAR(50) NOT NULL,
 isActive BIT NOT NULL DEFAULT 1);
-UPDATE Users SET isActive = 1
-
-DROP TABLE Users
-SELECT r.name
-            FROM Roles r
-            JOIN UserRoles ur ON ur.roleId = r.id
-            WHERE ur.userId = 3
-DROP TABLE Users
-SELECT * FROM Users
 
 CREATE TABLE Auth 
 (
@@ -29,11 +20,6 @@ CREATE TABLE Auth
     ON UPDATE CASCADE
 );
 
-
-
-DROP TABLE Auth
-SELECT * FROM Auth
-
 -- All the roles that exists in our system
 CREATE TABLE Roles (id int PRIMARY KEY IDENTITY (1,1),
 name VARCHAR(100))
@@ -41,23 +27,16 @@ DROP TABLE Roles
 
 -- Insert all roles in DB
 INSERT INTO Roles (name) VALUES ('Super Admin'),('Admin'),('Customer'),('Developer');
-SELECT * FROM Roles
 
 -- Each user has one role only
 CREATE TABLE UserRoles (userId INT UNIQUE,
 roleId INT,
 CONSTRAINT fk_userId_userRoles FOREIGN KEY (userId) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL,
 CONSTRAINT fk_roleId_userRoles FOREIGN KEY (roleId) REFERENCES Roles(id) ON UPDATE CASCADE ON DELETE SET NULL)
-DROP TABLE UserRoles
-SELECT * FROM UserRoles
-SELECT * FROM Users
-SELECT * FROM Auth
 
-SELECT * FROM UserPermissions WHERE userId = 1035
 -- All the permissions that exists in the whole system 
 CREATE TABLE Permissions (id int PRIMARY KEY IDENTITY (1,1),
 name VARCHAR(100))
-DROP TABLE Permissions
 
 
 -- Insert all permissions of the system
@@ -90,9 +69,7 @@ INSERT INTO Permissions (name) VALUES ('CanUnblockDevelopers')
 INSERT INTO Permissions (name) VALUES ('CanUnblockAdmins')
 INSERT INTO Permissions (name) VALUES ('CanViewAllAdmins')
 INSERT INTO Permissions (name) VALUES ('CanEditAdmin')
-SELECT * FROM Permissions
 
-SELECT name FROM Permissions WHERE id IN (SELECT permissionId from RolePermissions WHERE roleId = 4)
 
 -- Out of all the permissions, each role can perform specific permissions of that role only
 CREATE TABLE RolePermissions (roleId INT,
@@ -100,7 +77,6 @@ permissionId INT,
 CONSTRAINT fk_roleId FOREIGN KEY (roleId) REFERENCES Roles(id) ON UPDATE CASCADE ON DELETE SET NULL,
 CONSTRAINT fk_permissionId FOREIGN KEY (permissionId) REFERENCES Permissions(id)
  ON UPDATE CASCADE ON DELETE SET NULL)
-DROP TABLE RolePermissions
 
 --Insert the role permissions of Super Admin role
 INSERT INTO RolePermissions VALUES (1,1)
@@ -153,24 +129,12 @@ INSERT INTO RolePermissions VALUES (4,21)
 INSERT INTO RolePermissions VALUES (4,22)
 INSERT INTO RolePermissions VALUES (4,25)
 
-SELECT * FROM Permissions
-
-SELECT permissionId FROM RolePermissions WHERE roleId = 2
-SELECT permissionId FROM RolePermissions WHERE roleId = 1
-
-SELECT * FROM RolePermissions
-TRUNCATE TABLE RolePermissions
 
 -- All users have specific permissions from their role`s permissions
 CREATE TABLE UserPermissions (userId INT,
 permissionId INT,
 CONSTRAINT fk_roleId_userPermissions FOREIGN KEY (userId) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL,
 CONSTRAINT fk_permissionId_userPermissions FOREIGN KEY (permissionId) REFERENCES Permissions(id) ON UPDATE CASCADE ON DELETE SET NULL)
-DROP TABLE UserPermissions
-SELECT * FROM UserPermissions
-
-SELECT * FROM UserPermissions WHERE userId = 1004
-
 
 INSERT INTO UserPermissions VALUES (1,23)
 INSERT INTO UserPermissions VALUES (1,24)
@@ -187,33 +151,6 @@ INSERT INTO UserPermissions VALUES (1,30)
 INSERT INTO UserPermissions VALUES (1,31)
 INSERT INTO UserPermissions VALUES (1,32)
 INSERT INTO UserPermissions VALUES (1,33)
-
-SELECT * FROM UserPermissions WHERE userId = 1
-
-SELECT * FROM UserPermissions 
-
-DELETE FROM Auth WHERE userId = 1024
-DELETE FROM Users WHERE id = 1024
-
-
-
-SELECT * FROM Users
-SELECT * FROM Auth
-SELECT * FROM UserRoles
-SELECT * FROM UserPermissions
-select * from roles
-
-SELECT p.name FROM Permissions p JOIN RolePermissions rp
-        ON rp.permissionId = p.id WHERE rp.roleId IN
-        (SELECT r.id FROM Roles r WHERE r.name = 'Customer')
-
-
-
-TRUNCATE TABLE Auth
-TRUNCATE TABLE UserRoles
-TRUNCATE TABLE UserPermissions
-TRUNCATE TABLE Users
-
 
 CREATE TABLE Games (id INT PRIMARY KEY IDENTITY(1,1),
 name NVARCHAR(100) NOT NULL UNIQUE,
@@ -239,39 +176,6 @@ ON UPDATE CASCADE ON DELETE SET NULL,
 CONSTRAINT fk_approvedBy FOREIGN KEY (approvedBy) REFERENCES Users(id),
 CONSTRAINT fk_rejectedBy FOREIGN KEY (rejectedBy) REFERENCES Users(id)
 );
-
-SELECT * FROM Games
-DROP TABLE Games
-SELECT * FROM Games WHERE developerId = 7
-SELECT * FROM Games WHERE developerId = 3
-
-DELETE FROM Games WHERE id = 58
-
-DELETE FROM Games WHERE id = 58
-DELETE FROM Games WHERE id = 59
-DELETE FROM Games WHERE id = 60
-DELETE FROM Games WHERE id = 61
-
-DELETE FROM Sale_Records WHERE gameId = 58
-DELETE FROM Sale_Records WHERE gameId = 59
-DELETE FROM Sale_Records WHERE gameId = 60
-DELETE FROM Sale_Records WHERE gameId = 61
-
-DELETE FROM Warnings WHERE gameId = 58
-DELETE FROM Warnings WHERE gameId = 59 
-DELETE FROM Warnings WHERE gameId = 60
-DELETE FROM Warnings WHERE gameId = 61 
-
-DELETE FROM End_Warning_Request WHERE warningId IN (SELECT id FROM Warnings WHERE gameId = 58)
-
-DELETE FROM End_Warning_Request WHERE warningId IN (SELECT id FROM Warnings WHERE gameId = 59)
-
-DELETE FROM End_Warning_Request WHERE warningId IN (SELECT id FROM Warnings WHERE gameId = 60)
-
-DELETE FROM End_Warning_Request WHERE warningId IN (SELECT id FROM Warnings WHERE gameId = 61)
-TRUNCATE TABLE Games
-
-SELECT COUNT(*) FROM Games WHERE name = 'Cristiano Ronaldo: The GOAT Siuuuuuu' AND id NOT IN(0)
 
 CREATE TABLE Game_Ratings
 (
@@ -310,22 +214,6 @@ CREATE TABLE Game_Requirements
         REFERENCES Games(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-DROP TABLE Game_Requirements
-SELECT * FROM Games
-
-UPDATE Games SET hasWarning = 0 WHERE id = 1
-
-UPDATE Games SET isActive = 1 
-
-SELECT * FROM Game_Requirements
-SELECT * FROM Game_Ratings
-
-SELECT COUNT(*) FROM Game_Ratings WHERE gameId =2
-
-SELECT SUM(ratingGiven) FROM Game_Ratings WHERE gameId = 2
-
-INSERT INTO Game_Ratings VALUES(1,2,9.6)
-INSERT INTO Game_Ratings VALUES(2,2,8.2)
 
 CREATE TABLE Sale_Records (gameId INT NOT NULL,
 buyerId INT NOT NULL,
@@ -338,16 +226,9 @@ CONSTRAINT FK_buyerId
 FOREIGN KEY (buyerId)
 REFERENCES Users(id))
 
-DROP TABLE Sale_Records
-SELECT * FROM Sale_Records
-SELECT * FROM Sale_Records WHERE buyerId = 3
 
 INSERT INTO Sale_Records VALUES(4,1,129.36)
 INSERT INTO Sale_Records VALUES(2,2,839)
-
-SELECT COUNT(*) FROM Sale_Records WHERE gameId = 2
-
-SELECT SUM(price) FROM Sale_Records WHERE gameId = 2
 
 DROP TABLE Sale_Records
 
@@ -362,10 +243,6 @@ REFERENCES Users(id),
 CONSTRAINT FK_gameId_cart
 FOREIGN KEY (gameId)
 REFERENCES Games(id))
-
-SELECT * FROM Cart
-DROP TABLE Cart
-DELETE FROM Cart WHERE buyerId = 1 AND gameId = 1
 
 
 CREATE TABLE Warnings (id INT PRIMARY KEY IDENTITY (1,1),
@@ -399,73 +276,3 @@ doNotShowAgain BIT DEFAULT 0 NOT NULL,
 CONSTRAINT fk_WarningId FOREIGN KEY (warningId) REFERENCES Warnings(id),
 CONSTRAINT fk_reqAcceptedBy FOREIGN KEY (acceptedBy) REFERENCES Users(id),
 CONSTRAINT fk_reqRejectedBy FOREIGN KEY (rejectedBy) REFERENCES Users(id))
-
-
-SELECT * FROM Warnings
-SELECT * FROM Games
-SELECT * FROM Games WHERE developerId = 2
-SELECT * FROM End_Warning_Request
-SELECT COUNT(*) FROM Games WHERE id = 7
-
-DROP TABLE End_Warning_Request
-DROP TABLE Warnings
-
-
-
-SELECT COUNT(*) FROM Warnings WHERE id = 1
-        AND gameId IN (SELECT id FROM Games WHERE developerId = 1005)
-
-INSERT INTO End_Warning_Request (warningId,requestNote) VALUES (1,'dummy note')
-
-INSERT INTO End_Warning_Request 
-        (warningId, requestNote) VALUES (1,'')
-
-UPDATE Games SET hasWarning = 0
-
-
-UPDATE End_Warning_Request SET isAccepted = 1, acceptedBy = 1, is Active = 0 
-            WHERE warningId = 1
-
-SELECT * FROM Games WHERE developerId = 1005
-UPDATE Warnings SET endedBy = 1, endedAt = GETDATE()
-SELECT * FROM Warnings
-UPDATE Games SET hasWarning = 0
-
-SELECT * FROM End_Warning_Request
-UPDATE End_Warning_Request SET doNotShowAgain = 0
-
-
-UPDATE End_Warning_Request SET isAccepted = 1, acceptedBy = 1, isActive = 0 
-            WHERE warningId = 1
-
-SELECT reason FROM Warnings WHERE gameId = 7
-
-SELECT COUNT(*) FROM Sale_Records WHERE buyerId = 3 AND gameId = 1
-
-UPDATE Games SET imageLink = 'https://devimages-cdn.apple.com/wwdc-services/articles/images/3D5F5DD3-14F7-4384-94C0-798D15EE7CD7/2048.jpeg'
-
-
-SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
-        discountPercentage FROM Games WHERE isActive = 1 AND isApproved = 1 AND isPublic = 1
-
-
-SELECT id,name,price,intro,description,genre,downloadLink,imageLink,
-        discountPercentage,hasWarning,isActive,isPublic FROM Games WHERE developerId = 1005 
-        AND isActive = 0 
-
-UPDATE Games SET requestResultViewed = 1 WHERE id = 1
-
-
-SELECT 
-            e.id,e.warningId,e.requestNote,e.isAccepted,e.isRejected,w.gameId,w.reason,
-            g.name AS gameName,
-            u.name AS developerName
-        FROM End_Warning_Request e
-        INNER JOIN Warnings w 
-            ON e.warningId = w.id
-        INNER JOIN Games g 
-            ON w.gameId = g.id
-        INNER JOIN Users u
-            ON g.developerId = u.id
-        WHERE e.doNotShowAgain = 0
-        AND g.developerId = 2
