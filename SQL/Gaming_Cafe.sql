@@ -29,6 +29,8 @@ CREATE TABLE Auth
     ON UPDATE CASCADE
 );
 
+
+
 DROP TABLE Auth
 SELECT * FROM Auth
 
@@ -51,6 +53,7 @@ SELECT * FROM UserRoles
 SELECT * FROM Users
 SELECT * FROM Auth
 
+SELECT * FROM UserPermissions WHERE userId = 1035
 -- All the permissions that exists in the whole system 
 CREATE TABLE Permissions (id int PRIMARY KEY IDENTITY (1,1),
 name VARCHAR(100))
@@ -189,6 +192,11 @@ SELECT * FROM UserPermissions WHERE userId = 1
 
 SELECT * FROM UserPermissions 
 
+DELETE FROM Auth WHERE userId = 1024
+DELETE FROM Users WHERE id = 1024
+
+
+
 SELECT * FROM Users
 SELECT * FROM Auth
 SELECT * FROM UserRoles
@@ -237,7 +245,33 @@ DROP TABLE Games
 SELECT * FROM Games WHERE developerId = 7
 SELECT * FROM Games WHERE developerId = 3
 
+DELETE FROM Games WHERE id = 58
+
+DELETE FROM Games WHERE id = 58
+DELETE FROM Games WHERE id = 59
+DELETE FROM Games WHERE id = 60
+DELETE FROM Games WHERE id = 61
+
+DELETE FROM Sale_Records WHERE gameId = 58
+DELETE FROM Sale_Records WHERE gameId = 59
+DELETE FROM Sale_Records WHERE gameId = 60
+DELETE FROM Sale_Records WHERE gameId = 61
+
+DELETE FROM Warnings WHERE gameId = 58
+DELETE FROM Warnings WHERE gameId = 59 
+DELETE FROM Warnings WHERE gameId = 60
+DELETE FROM Warnings WHERE gameId = 61 
+
+DELETE FROM End_Warning_Request WHERE warningId IN (SELECT id FROM Warnings WHERE gameId = 58)
+
+DELETE FROM End_Warning_Request WHERE warningId IN (SELECT id FROM Warnings WHERE gameId = 59)
+
+DELETE FROM End_Warning_Request WHERE warningId IN (SELECT id FROM Warnings WHERE gameId = 60)
+
+DELETE FROM End_Warning_Request WHERE warningId IN (SELECT id FROM Warnings WHERE gameId = 61)
 TRUNCATE TABLE Games
+
+SELECT COUNT(*) FROM Games WHERE name = 'Cristiano Ronaldo: The GOAT Siuuuuuu' AND id NOT IN(0)
 
 CREATE TABLE Game_Ratings
 (
@@ -377,6 +411,7 @@ DROP TABLE End_Warning_Request
 DROP TABLE Warnings
 
 
+
 SELECT COUNT(*) FROM Warnings WHERE id = 1
         AND gameId IN (SELECT id FROM Games WHERE developerId = 1005)
 
@@ -386,6 +421,7 @@ INSERT INTO End_Warning_Request
         (warningId, requestNote) VALUES (1,'')
 
 UPDATE Games SET hasWarning = 0
+
 
 UPDATE End_Warning_Request SET isAccepted = 1, acceptedBy = 1, is Active = 0 
             WHERE warningId = 1

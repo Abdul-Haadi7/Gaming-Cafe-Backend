@@ -45,7 +45,7 @@ public class DeveloperController : ControllerBase
     [HttpPost("uploadGame")]
     public async Task<IActionResult> uploadGame([FromForm] UploadGameDTO game, IFormFile image, IFormFile file)
     {
-        if (this.opHelper.nameIsTaken(game.name))
+        if (this.opHelper.nameIsTaken(game.name, 0))
         {
             return BadRequest (new {message = "This game name is already taken! Choose another name"});
         }
@@ -166,7 +166,7 @@ public class DeveloperController : ControllerBase
     [HttpPut("editMyGame")]
     public async Task<IActionResult> editMyGame([FromForm] EditGameDTO editedGame, IFormFile? image, IFormFile? file)
     {
-        if (this.opHelper.nameIsTaken(editedGame.name))
+        if (this.opHelper.nameIsTaken(editedGame.name, editedGame.id))
         {
             return BadRequest (new {message = "This game name is already taken! Choose another name"});
         }

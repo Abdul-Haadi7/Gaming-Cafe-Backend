@@ -128,11 +128,11 @@ public class AdminController : ControllerBase
     }
     [HttpPut("endWarning")]
     [Authorize(Policy = "CanEndWarning")]
-    public IActionResult endWarning(ReturnWarningsDTO warning)
+    public IActionResult endWarning(ReturnWarningEndReqDTO req)
     {
         string? id = this.User.FindFirst("id")?.Value;
         int userId = int.Parse(id);
-        bool done = this.opHelper.endWarning(warning,userId);
+        bool done = this.opHelper.endWarning(req,userId);
         if (done)
         {
             return new OkObjectResult(new { message = "Warning ended!" });
@@ -158,19 +158,20 @@ public class AdminController : ControllerBase
     }
     [HttpPut("approveEndWarningReq")]
     [Authorize(Policy = "CanEndWarning")]
-    public IActionResult approveEndWarningReq(int warningId)
+    public IActionResult approveEndWarningReq(int reqId)
     {
-        ReturnWarningsDTO warning = this.opHelper.getWarningById(warningId);
-        return this.endWarning(warning);    
+        ReturnWarningEndReqDTO req = this.opHelper.getWarningEndReqById(reqId);
+        return this.endWarning(req);    
     }
     [HttpPut("rejectEndWarningReq")]
     [Authorize(Policy = "CanEndWarning")]
-    public IActionResult rejectEndWarningReq(int warningId)
+    public IActionResult rejectEndWarningReq(int reqId)
     {
         string? id = this.User.FindFirst("id")?.Value;
         int userId = int.Parse(id);
-        ReturnWarningsDTO warning = this.opHelper.getWarningById(warningId);
-        if(this.opHelper.rejectWarningEndReq(warning, userId)){
+        ReturnWarningEndReqDTO req = this.opHelper.getWarningEndReqById(reqId);
+        if(this.opHelper.rejectWarningEndReq(req, userId))
+        {
             return new OkObjectResult(new { message = "Request rejected!" });
         }
         return BadRequest (new {message = "Failed to reject request!"});

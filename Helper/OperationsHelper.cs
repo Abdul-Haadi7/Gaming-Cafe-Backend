@@ -33,12 +33,13 @@ public class OperationsHelper
         string? name = this._dapper.returnSingle_WithParameters<string>(sql, parameters);
         return name;
     }
-    public bool nameIsTaken(string gameName)
+    public bool nameIsTaken(string gameName, int gameId)
     {
-        string sql = "SELECT COUNT(*) FROM Games WHERE name = @name";
+        string sql = "SELECT COUNT(*) FROM Games WHERE name = @name AND id NOT IN(@id)";
         List<SqlParameter> parameters = new List<SqlParameter>
         {
-            new SqlParameter("@name", gameName)
+            new SqlParameter("@name", gameName),
+            new SqlParameter("@id", gameId)
         };
 
         return this._dapper.returnSingle_WithParameters<int>(sql,parameters) > 0;
@@ -1110,54 +1111,54 @@ public class OperationsHelper
         string sql = @"SELECT COUNT(*) FROM Warnings WHERE isActive = 1";
         return this._dapper.returnSingle<int>(sql);
     }
-    public bool endWarning(ReturnWarningsDTO warning, int adminId)
+    public bool endWarning(ReturnWarningEndReqDTO req, int adminId)
     {
         string sql = @"UPDATE Warnings SET isActive = 0, endedBy = @adminId, endedAt = GETDATE() 
         WHERE id = @warnId";
         List<SqlParameter> parameters = new List<SqlParameter>
         {
-            new SqlParameter("@warnId", warning.id),
+            new SqlParameter("@warnId", req.warningId),
             new SqlParameter("@adminId", adminId)
         };
         if (this._dapper.ExecuteSQL_WithParameters(sql, parameters))
         {
-            sql = @"UPDATE End_Warning_Request SET isAccepted = 1, acceptedBy = @adminId, isActive = 0 
-            WHERE warningId = @warnId";
+            sql = @"UPDATE End_Warning_Request SET isAccepted = 1, isRejected = 0
+            ,acceptedBy = @adminId, rejectedBy = null, isActive = 0 
+            WHERE id = @id";
             List<SqlParameter> parameters2 = new List<SqlParameter>
             {
                 new SqlParameter("@adminId", adminId),
-                new SqlParameter("@warnId", warning.id)
+                new SqlParameter("@id", req.id)
             };
-            if (warning.requestedToEnd)
-            {  
-                this._dapper.ExecuteSQL_WithParameters(sql, parameters2);
-            }
-            if(this.countWarningsOfGame(warning.gameId) <= 0)
+  
+            this._dapper.ExecuteSQL_WithParameters(sql, parameters2);
+            
+            if(this.countWarningsOfGame(req.gameId) <= 0)
             {
-                setHasWarning(false, warning.gameId);
+                setHasWarning(false, req.gameId);
                 return true;
-                
             }
             return true;
         }
         return false;
     }
-    public bool rejectWarningEndReq(ReturnWarningsDTO warning, int adminId)
+    public bool rejectWarningEndReq(ReturnWarningEndReqDTO req, int adminId)
     {
         string sql = @"UPDATE Warnings SET requestedToEnd = 0
         WHERE id = @warnId";
         List<SqlParameter> parameters = new List<SqlParameter>
         {
-            new SqlParameter("@warnId", warning.id)
+            new SqlParameter("@warnId", req.warningId)
         };
         if (this._dapper.ExecuteSQL_WithParameters(sql, parameters))
         {
-            sql = @"UPDATE End_Warning_Request SET isRejected = 1, rejectedBy = @adminId, isActive = 0 
-            WHERE warningId = @warnId";
+            sql = @"UPDATE End_Warning_Request SET isRejected = 1, isAccepted = 0,
+            rejectedBy = @adminId, acceptedBy = null,isActive = 0 
+            WHERE id = @reqId";
             List<SqlParameter> parameters2 = new List<SqlParameter>
             {
                 new SqlParameter("@adminId", adminId),
-                new SqlParameter("@warnId", warning.id)
+                new SqlParameter("@reqId", req.id)
             };
             return this._dapper.ExecuteSQL_WithParameters(sql,parameters2);
         }
@@ -1182,20 +1183,8 @@ public class OperationsHelper
         };
         return this._dapper.ExecuteSQL_WithParameters(sql,parameters);
     }
-    //     public int id{get;set;}
-    // public int warningId { get; set; }
-    // public string reason{get;set;}
-    // public string requestNote { get; set; } = "";
-    // public int gameId{get;set;}
-    // public string gameName{get;set;}
-    // public string developerName{get;set;}
-    // public bool isAccepted {get;set;}
-    // public bool isRejected{get;set;}
-    // public bool doNotShowAgain{get;set;}
     public IEnumerable<ReturnWarningEndReqDTO> getAllWarningEndReqForAdmin()
     {
-        // string sql = @"SELECT id,warningId,requestNote, isAccepted, isRejected, doNotShowAgain
-        // FROM End_Warning_Request WHERE isActive = 1";
           string sql = @"
         SELECT 
             e.id,e.warningId,e.requestNote,e.isAccepted,e.isRejected,w.gameId,w.reason,
@@ -1210,24 +1199,6 @@ public class OperationsHelper
             ON g.developerId = u.id
         WHERE e.isActive = 1";
         IEnumerable<ReturnWarningEndReqDTO> list = this._dapper.loadData<ReturnWarningEndReqDTO>(sql);
-        // foreach(var warn in list)
-        // {
-        //     sql = @"SELECT gameId FROM Warnings WHERE id = @warnId";
-        //     List<SqlParameter> parameters = new List<SqlParameter>
-        //     {
-        //         new SqlParameter("@warnId",warn.id)
-        //     };
-           
-        //     warn.gameId = this._dapper.returnSingle_WithParameters<int>(sql,parameters);
-        //     warn.gameName = this.getGameName(warn.gameId);
-        //     warn.developerName = this.getGameDeveloperName(warn.gameId);
-        //     sql = @"SELECT reason FROM Warnings WHERE id = @warnId";
-        //     List<SqlParameter> parameters3 = new List<SqlParameter>
-        //     {
-        //         new SqlParameter("@warnId",warn.id)
-        //     };
-        //     warn.reason = this._dapper.returnSingle_WithParameters<string>(sql,parameters3);
-        // }
         return list;
     }
 
@@ -1252,24 +1223,6 @@ public class OperationsHelper
             new SqlParameter("@devId",devId)
         };
         IEnumerable<ReturnWarningEndReqDTO> list = this._dapper.loadObject_WithParameters<ReturnWarningEndReqDTO>(sql,parameters);
-        // foreach(var warn in list)
-        // {
-        //     sql = @"SELECT gameId FROM Warnings WHERE id = @warnId";
-        //     List<SqlParameter> parameters2 = new List<SqlParameter>
-        //     {
-        //         new SqlParameter("@warnId",warn.id)
-        //     };
-          
-        //     warn.gameId = this._dapper.returnSingle_WithParameters<int>(sql,parameters2);
-        //     warn.gameName = this.getGameName(warn.gameId);
-        //     warn.developerName = this.getGameDeveloperName(warn.gameId);
-        //     sql = @"SELECT reason FROM Warnings WHERE id = @warnId";
-        //     List<SqlParameter> parameters3 = new List<SqlParameter>
-        //     {
-        //         new SqlParameter("@warnId",warn.id)
-        //     };
-        //     warn.reason = this._dapper.returnSingle_WithParameters<string>(sql,parameters3);
-        // }
         return list;
     }
     public int countEndWarningReq()
@@ -1277,18 +1230,30 @@ public class OperationsHelper
         string sql = @"SELECT COUNT(*) FROM End_Warning_Request WHERE isActive = 1";
         return this._dapper.returnSingle<int>(sql);
     }
-    public ReturnWarningsDTO getWarningById(int warningId)
+    public ReturnWarningEndReqDTO getWarningEndReqById(int reqId)
     {
-        string sql = @"SELECT id,gameId,reason,issuedBy,issuedAt,requestedToEnd
-        FROM Warnings WHERE id = @id";
+        string sql = @"
+            SELECT 
+            e.id,e.warningId,w.reason,e.requestNote,w.gameId,g.name AS gameName,          
+            u.name AS developerName,e.isAccepted,e.isRejected, e.doNotShowAgain
+        FROM End_Warning_Request e
+        INNER JOIN Warnings w 
+            ON e.warningId = w.id
+        INNER JOIN Games g 
+            ON w.gameId = g.id
+        INNER JOIN Users u
+            ON g.developerId = u.id
+        WHERE e.id = @id";
+
         List<SqlParameter> parameters = new List<SqlParameter>
         {
-            new SqlParameter("@id",warningId)
+            new SqlParameter("@id",reqId)
         };
-        ReturnWarningsDTO? warning = this._dapper.returnSingleObj_WithParameters<ReturnWarningsDTO>(sql,parameters);
-       
-        return warning;
+     
+        ReturnWarningEndReqDTO req = this._dapper.returnSingleObj_WithParameters<ReturnWarningEndReqDTO>(sql,parameters);
+        return req;
     }
+
     public IEnumerable<ReturnDeveloperToAdminDTO> getAllDevs()
     {
         string sql = @"SELECT u.id,u.name, u.email, u.phone,
