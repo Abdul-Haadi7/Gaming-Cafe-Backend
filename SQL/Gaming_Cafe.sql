@@ -1,7 +1,6 @@
+CREATE DATABASE Gaming_Cafe
 USE Gaming_Cafe
 
-DROP DATABASE Gaming_Cafe
-CREATE DATABASE Gaming_Cafe
 
 CREATE TABLE Users (id INT PRIMARY KEY IDENTITY(1,1),
 name NVARCHAR(100) NOT NULL,
@@ -23,7 +22,6 @@ CREATE TABLE Auth
 -- All the roles that exists in our system
 CREATE TABLE Roles (id int PRIMARY KEY IDENTITY (1,1),
 name VARCHAR(100))
-DROP TABLE Roles
 
 -- Insert all roles in DB
 INSERT INTO Roles (name) VALUES ('Super Admin'),('Admin'),('Customer'),('Developer');
@@ -194,7 +192,6 @@ CREATE TABLE Game_Ratings
     CONSTRAINT checkRating
         CHECK (ratingGiven > 0 AND ratingGiven <= 10)
 );
-DROP TABLE Game_Ratings
 
 INSERT INTO Game_Ratings values (1,4,10)
 INSERT INTO Game_Ratings values (2,4,0.1)
@@ -229,9 +226,6 @@ REFERENCES Users(id))
 
 INSERT INTO Sale_Records VALUES(4,1,129.36)
 INSERT INTO Sale_Records VALUES(2,2,839)
-
-DROP TABLE Sale_Records
-
 
 CREATE TABLE Cart (buyerId INT NOT NULL,
 gameId INT NOT NULL,
