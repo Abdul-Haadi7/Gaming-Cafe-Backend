@@ -1,18 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using GAME_CAFE.Data;
-using GAME_CAFE.Models;
 using GAME_CAFE.Dtos;
 using System.Security.Cryptography;
 using Microsoft.Data.SqlClient;
 using System.Data;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 using GAME_CAFE.Helper;
 using Microsoft.AspNetCore.Authorization;
-using System.Numerics;
 
 namespace GAME_CAFE.Controllers;
 
